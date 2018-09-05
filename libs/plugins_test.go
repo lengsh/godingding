@@ -1,14 +1,13 @@
-package  libs 
+package libs
 
 import (
-		"testing"
-		"fmt"
-		"github.com/lengsh/godingding/libs"
-       )
+	"fmt"
+	"github.com/lengsh/godingding/libs"
+	"testing"
+)
 
-
-func TestCrawler_Plugins(t *testing.T){
-s :=  libs.Crawler_Stock("baba")
-   fmt.Println(s)
+func TestCrawler_Plugins(t *testing.T) {
+	s := libs.Crawler_Stock("baba")
+	fmt.Println(s)
 
 }
