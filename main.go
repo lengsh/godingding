@@ -124,9 +124,10 @@ log.Println( m )
 func syscallDo(msg string) string  {
 
     //  ProcMap := map[string]string{"text":"./bin/world","link":"./bin/stock"}
-
+     sTime := libs.Crawler_Phantomjs(msg) 
+     
      flog := mlog.LogInst()
-     flog.LogInfo("test mlog!!")
+     flog.LogInfo(sTime)
 
      cmd := fmt.Sprintf("./bin/stock %s", msg)
      lsCmd := exec.Command("bash", "-c", cmd)
@@ -137,17 +138,23 @@ func syscallDo(msg string) string  {
 	  return "No Data!"
      } else{
         flog.LogInfo(string(lsOut))
-        return  fmt.Sprintf("%s", lsOut)
+        return  fmt.Sprintf("%s\n %s",sTime, lsOut)
      }
 }
 
  func durationPing(){
-	time.AfterFunc(time.Duration(3600*time.Second), func() {
-s := syscallDo("BABA")
-dingtalker := libs.NewDingtalker()
-dingtalker.SendRobotTextMessage( s )
-    durationPing()
-})
+  // 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
+  mt := time.Now().Unix()
+  var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
+  var nt time.Duration = time.Duration(ntt)
+  log.Printf("next report at ",ntt)
+  time.AfterFunc(   time.Duration(time.Second * nt ), func() {
+      s := syscallDo("BABA")
+      dingtalker := libs.NewDingtalker()
+      dingtalker.SendRobotTextMessage( s )
+      durationPing()
+    })
+
 }
 
 func main() {
