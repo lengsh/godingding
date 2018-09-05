@@ -120,15 +120,31 @@ log.Println( m )
    }
 }
 
+/*
+
+ 通过plugin加载.so的方式。 
+ 
+ */
+func pluginDo(msg string) string  {
+
+     sTime := libs.Crawler_163(msg) 
+     flog := mlog.LogInst()
+     flog.LogInfo(sTime)
+     sResult := libs.Crawler_Futu(msg)
+     return  fmt.Sprintf("%s\n %s",sTime, sResult)
+}
 
 func syscallDo(msg string) string  {
 
     //  ProcMap := map[string]string{"text":"./bin/world","link":"./bin/stock"}
-     sTime := libs.Crawler_Phantomjs(msg) 
+     sTime := libs.Crawler_163(msg) 
      
      flog := mlog.LogInst()
      flog.LogInfo(sTime)
-
+/*
+ 这里测试了一种通过启动了外部进程获得信息的方式，
+ 如果后续有时间，可以增加通过plugin加载.so的方式。
+*/
      cmd := fmt.Sprintf("./bin/stock %s", msg)
      lsCmd := exec.Command("bash", "-c", cmd)
      lsOut, err := lsCmd.Output()
