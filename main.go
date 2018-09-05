@@ -11,7 +11,8 @@ import (
         "encoding/json"
  "crypto/md5"
 "time"
-"hello/libs"
+"github.com/lengsh/godingding/libs"
+"github.com/lengsh/godingding/mlog"
 
 )
 
@@ -124,21 +125,39 @@ func syscallDo(msg string) string  {
 
     //  ProcMap := map[string]string{"text":"./bin/world","link":"./bin/stock"}
 
+     flog := mlog.LogInst()
+     flog.LogInfo("test mlog!!")
+
      cmd := fmt.Sprintf("./bin/stock %s", msg)
      lsCmd := exec.Command("bash", "-c", cmd)
      lsOut, err := lsCmd.Output()
      if err != nil {
 	        // panic(err)
-          log.Println("error! ",err)
+          flog.LogError(fmt.Sprintln(err))
 	  return "No Data!"
      } else{
+        flog.LogInfo(string(lsOut))
         return  fmt.Sprintf("%s", lsOut)
      }
 }
 
+ func durationPing(){
+	time.AfterFunc(time.Duration(3600*time.Second), func() {
+s := syscallDo("BABA")
+dingtalker := libs.NewDingtalker()
+dingtalker.SendRobotTextMessage( s )
+    durationPing()
+})
+}
+
 func main() {
 
-        http.HandleFunc("/", firstPage)  //设置访问的路由
+   mlog.InitFilelog(true, "./log")
+   flog := mlog.LogInst()
+   flog.LogInfo("test mlog!!")
+  
+   durationPing()
+http.HandleFunc("/", firstPage)  //设置访问的路由
 	http.HandleFunc("/send", send)     //设置访问的路由
 	http.HandleFunc("/query", query) //设置访问的路由
 	http.HandleFunc("/help", help) //设置访问的路由
