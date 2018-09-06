@@ -132,8 +132,8 @@ func pluginDo(msg string) string {
 	sTime := libs.Crawler_163(msg)
 	flog := mlog.LogInst()
 	flog.LogInfo(sTime)
-	sResult := libs.Crawler_Futu(msg)
-	return fmt.Sprintf("%s\n %s", sTime, sResult)
+	st := libs.Crawler_Futu(msg, sTime)
+	return st.String()
 }
 
 func syscallDo(msg string) string {
@@ -169,9 +169,11 @@ func durationPing() {
 	time.AfterFunc(time.Duration(time.Second*nt), func() {
 		// new log file mybe
 		mlog.InitFilelog(true, "./log")
-		s := syscallDo("BABA")
+		sk := "BABA"
+		s := syscallDo(sk)
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendRobotTextMessage(s)
+		libs.SaveStock(sk, s)
 		/* 防止连续执行  */
 		time.Sleep(60 * time.Second)
 		durationPing()

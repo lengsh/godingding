@@ -5,6 +5,7 @@ import (
 	"github.com/lengsh/godingding/libs"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -13,7 +14,7 @@ func main() {
 		stk = os.Args[1]
 		stk = strings.ToUpper(stk)
 	}
-	s := libs.Crawler_Futu(stk)
+	t := time.Now().Format("2006-01-02 15:04:05")
+	s := libs.Crawler_Futu(stk, t)
 	fmt.Println(s)
-
 }

@@ -30,10 +30,10 @@ func NewDingtalker() *Dingtalker {
 }
 
 func (r *Dingtalker) SendChatTextMessage(msg string) {
-//	log.Println("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
+	//	log.Println("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
 	c := godingtalk.NewDingTalkClient(r.CorpId, r.CorpSecret)
 	c.RefreshAccessToken()
-//	log.Println("AccessToken = ", c.AccessToken)
+	//	log.Println("AccessToken = ", c.AccessToken)
 	err := c.SendTextMessage("YY", r.ChatId, msg)
 	if err != nil {
 		log.Println(err)
@@ -41,13 +41,13 @@ func (r *Dingtalker) SendChatTextMessage(msg string) {
 }
 
 func (r *Dingtalker) SendRobotTextMessage(msg string) {
-//	log.Println(msg)
-//	log.Println("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
+	//	log.Println(msg)
+	//	log.Println("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
 
 	c := godingtalk.NewDingTalkClient(r.CorpId, r.CorpSecret)
 	if c != nil {
 		c.RefreshAccessToken()
-//		log.Println("AccessToken = ", c.AccessToken)
+		//		log.Println("AccessToken = ", c.AccessToken)
 		err := c.SendRobotTextMessage(r.AcToken, msg)
 		if err != nil {
 			log.Println(err)
