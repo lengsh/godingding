@@ -111,7 +111,8 @@ func help(w http.ResponseWriter, r *http.Request) {
 				s = syscallDo("BABA")
 
 			} else {
-				s = syscallDo(strings.TrimSpace(fmt.Sprintf("%s", content)))
+				sm := template.HTMLEscapeString(strings.TrimSpace(fmt.Sprintf("%s", content)))
+				s = syscallDo(sm)
 			}
 			ss := fmt.Sprintf("@%s\n%s", senderNick, s)
 			dingtalker := libs.NewDingtalker()
@@ -171,6 +172,8 @@ func durationPing() {
 		s := syscallDo("BABA")
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendRobotTextMessage(s)
+		/* 防止连续执行  */
+		time.Sleep(60 * time.Second)
 		durationPing()
 	})
 
