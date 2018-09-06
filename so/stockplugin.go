@@ -4,6 +4,6 @@ import (
 	"github.com/lengsh/godingding/libs"
 )
 
-func Crawler_Stock(st string) string {
-	return libs.Crawler_Phantomjs(st)
+func CrawlerStock(st string) string {
+	return libs.Crawler_163(st)
 }

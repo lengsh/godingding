@@ -129,7 +129,8 @@ func help(w http.ResponseWriter, r *http.Request) {
 */
 func pluginDo(msg string) string {
 
-	sTime := libs.Crawler_163(msg)
+	so := libs.Plugins{"./so/stockplugin.so"}
+	sTime := so.Crawler_Stock(msg)
 	flog := mlog.LogInst()
 	flog.LogInfo(sTime)
 	st := libs.Crawler_Futu(msg, sTime)
@@ -170,7 +171,9 @@ func durationPing() {
 		// new log file mybe
 		mlog.InitFilelog(true, "./log")
 		sk := "BABA"
-		s := syscallDo(sk)
+		//		s := syscallDo(sk)
+		s := pluginDo(sk)
+
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendRobotTextMessage(s)
 		libs.SaveStock(sk, s)

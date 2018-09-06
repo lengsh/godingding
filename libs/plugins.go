@@ -1,14 +1,23 @@
 package libs
 
 import (
-	//"errors"
 	"fmt"
+	"os"
 	"plugin"
 )
 
-func Crawler_Stock(stk string) string {
+type Plugins struct {
+	SoFile string
+}
+
+func (r Plugins) Crawler_Stock(stk string) string {
 	result := ""
-	p, err := plugin.Open("./so/stockplugin.so")
+	if _, err := os.Stat(r.SoFile); os.IsNotExist(err) {
+		fmt.Println("File does not exist")
+		return result
+	}
+
+	p, err := plugin.Open(r.SoFile)
 	if err != nil {
 		fmt.Println(err)
 		return result

@@ -4,7 +4,7 @@
 # 1. 了解 web server、View模版的知识
 ````
   var stk []Stockorm
-  stk := GetStocksFromDB()
+  stk := GetStocksFromDB() //TODO
   t, _ := template.ParseFiles("query.gtpl")
   t.Execute(w, stk)
 
@@ -17,6 +17,16 @@
 # 2. 动态库生成和调用plugin
 ```
 go build -buildmode=plugin stockplugin.go 
+
+----- stockplugin.so
+ func CrawlerStock(st string) string {
+         return libs.Crawler_163(st)
+ }
+-------
+ p,_ := plugin.Open("./so/stockplugin.so")
+ crawlerstock, err := p.Lookup("CrawlerStock")
+ result = crawlerstock.(func(string) string)(stk)
+
 ```
 # 3. 数据库及OR
 ````
