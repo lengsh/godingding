@@ -1,25 +1,38 @@
 # godingding
 ```
+```
+# 1. 了解 web server、View模版的知识
+````
+  var stk []Stockorm
+  stk := GetStocksFromDB()
+  t, _ := template.ParseFiles("query.gtpl")
+  t.Execute(w, stk)
+
+-----------  query.gtpl ----------
+ {{range .}}
+    <tr><th>{{.Id}} </th><th>{{.Name}} </th><th> {{.Department}} </th><th>{{.Number}}</th></tr>
+ {{end}}
+
+````
+# 2. 动态库生成和调用plugin
+```
 go build -buildmode=plugin stockplugin.go 
 ```
+# 3. 数据库及OR
+````
 
-## 1. 了解 web server、View模版的知识
 ````
-````
-## 2. 动态库生成和调用plugin
+# 4. 动态网页爬取，https
 ```
+
 ```
-## 3. 数据库及OR
+# 5. dingtalk的消息发送与webhook（机器人）
 ````
+
 ````
-## 4. 动态网页爬取，https
+# 6. 
 ```
-```
-## 5. dingtalk的消息发送与webhook（机器人）
-````
-````
-## 6. 
-```
+
 ```
 ==========================
 ```
