@@ -21,45 +21,32 @@ type Dingtalker struct {
 	CorpId     string
 	AcToken    string
 	ChatId     string
-	Loger      *log4go.G4Log
 }
 
 func NewDingtalker() *Dingtalker {
-	return &Dingtalker{CORPSECRET, CORPID, ACTOKEN, CHATID, nil}
+	return &Dingtalker{CORPSECRET, CORPID, ACTOKEN, CHATID}
 }
 
 func (r *Dingtalker) SendChatTextMessage(msg string) {
-	r.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
+	log4go.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
 	c := godingtalk.NewDingTalkClient(r.CorpId, r.CorpSecret)
 	c.RefreshAccessToken()
-	r.Debug("AccessToken = ", c.AccessToken)
+	log4go.Debug("AccessToken = ", c.AccessToken)
 	err := c.SendTextMessage("YY", r.ChatId, msg)
-	if (err != nil) && (r.Loger != nil) {
-		r.Error(err)
+	if err != nil {
+		log4go.Error(err)
 	}
 }
 
 func (r *Dingtalker) SendRobotTextMessage(msg string) {
-	r.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
+	log4go.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
 	c := godingtalk.NewDingTalkClient(r.CorpId, r.CorpSecret)
 	if c != nil {
 		c.RefreshAccessToken()
-		r.Debug("AccessToken = ", c.AccessToken)
+		log4go.Debug("AccessToken = ", c.AccessToken)
 		err := c.SendRobotTextMessage(r.AcToken, msg)
 		if err != nil {
-			r.Error(err)
+			log4go.Error(err)
 		}
-	}
-}
-
-func (r *Dingtalker) Error(arg ...interface{}) {
-	if r.Loger != nil {
-		r.Loger.Error(arg...)
-	}
-}
-
-func (r *Dingtalker) Debug(arg ...interface{}) {
-	if r.Loger != nil {
-		r.Loger.Debug(arg...)
 	}
 }

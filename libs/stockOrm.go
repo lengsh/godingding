@@ -3,8 +3,8 @@ package libs
 import (
 	"fmt"
 	"github.com/astaxie/beego/orm"
+	"github.com/lengsh/godingding/log4go"
 	_ "github.com/mattn/go-sqlite3"
-	//"time"
 	//     _ "github.com/go-sql-driver/mysql" // 导入数据库驱动
 )
 
@@ -44,29 +44,18 @@ func (r Stock) NewStock() int {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
 	sql := fmt.Sprintf("SELECT * FROM stockorm WHERE  name ='%s' AND trade_date ='%s'", r.Name, r.TradeDate)
-	fmt.Println(sql)
+	log4go.Debug(sql)
 	rs = o.Raw(sql)
 	var stocks []Stockorm
 	num, err := rs.QueryRows(&stocks)
 	if err != nil {
-		fmt.Println(err)
+		log4go.Error(err)
 	} else if num < 1 {
 		var ns Stockorm = Stockorm{0, r}
-		/*
-			var ns Stockorm = Stockorm{}
-			ns.Name = r.Name
-			ns.HighPrice = r.HighPrice
-			ns.LowPrice = r.LowPrice
-			ns.StartPrice = r.StartPrice
-			ns.EndPrice = r.EndPrice
-			ns.TradeFounds = r.TradeFounds
-			ns.TradeStock = r.TradeStock
-			ns.TradeDate = r.TradeDate
-		*/
 		id, err := o.Insert(&ns)
 		if err != nil {
 		} else {
-			fmt.Println(id)
+			log4go.Info(id)
 			return 1
 		}
 	}
@@ -77,12 +66,12 @@ func QueryStock() []Stockorm {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
 	sql := fmt.Sprintf("SELECT * FROM stockorm ORDER BY trade_date desc LIMIT 20")
-	//	fmt.Println(sql)
+	log4go.Debug(sql)
 	rs = o.Raw(sql)
 	var stocks []Stockorm
 	_, err := rs.QueryRows(&stocks)
 	if err != nil {
-		fmt.Println("ERROR:  ", err)
+		log4go.Error(err)
 		return nil
 	} else {
 		return stocks

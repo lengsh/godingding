@@ -15,12 +15,12 @@ import (
 	"time"
 )
 
-func init() {
-	// 设置默认数据库
-}
+var gloger = log4go.NewF("./log")
 
 // var gloger  = log4go.New(os.Stdout)
-var gloger = log4go.NewF("./log")
+func init() {
+
+}
 
 type Msg struct {
 	Message string
@@ -77,7 +77,6 @@ func send(w http.ResponseWriter, r *http.Request) {
 				scrum_new := scrumbCreater("send")
 				if scrum_new == n[0] {
 					dingtalker := libs.NewDingtalker()
-					dingtalker.Loger = gloger
 					sm := m[0] // template.HTMLEscapeString(m[0])
 					dingtalker.SendChatTextMessage(sm)
 				}
@@ -102,7 +101,6 @@ func query(w http.ResponseWriter, r *http.Request) {
 				scrum_new := scrumbCreater("send")
 				if scrum_new == n[0] {
 					dingtalker := libs.NewDingtalker()
-					dingtalker.Loger = gloger
 					sm := m[0] //  template.HTMLEscapeString(m[0])
 					dingtalker.SendRobotTextMessage(sm)
 				}
@@ -138,7 +136,6 @@ func help(w http.ResponseWriter, r *http.Request) {
 			}
 			ss := fmt.Sprintf("@%s\n%s", senderNick, s)
 			dingtalker := libs.NewDingtalker()
-			dingtalker.Loger = gloger
 			dingtalker.SendRobotTextMessage(ss)
 
 		}()
@@ -197,7 +194,6 @@ func durationPing() {
 		s := pluginDo(sk)
 
 		dingtalker := libs.NewDingtalker()
-		dingtalker.Loger = gloger
 		dingtalker.SendRobotTextMessage(s)
 		/* 防止连续执行  */
 		time.Sleep(60 * time.Second)
@@ -207,9 +203,10 @@ func durationPing() {
 }
 
 func main() {
+	log4go.G4Logger = gloger
 	gloger.Open()
-	//	gloger.Close()     //
 
+	//	gloger.Close()     //
 	durationPing()
 	http.HandleFunc("/", firstPage)        //设置访问的路由
 	http.HandleFunc("/send", send)         //设置访问的路由

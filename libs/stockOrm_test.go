@@ -3,8 +3,16 @@ package libs
 import (
 	"fmt"
 	"github.com/lengsh/godingding/libs"
+	"github.com/lengsh/godingding/log4go"
+	"os"
 	"testing"
 )
+
+func init() {
+	loger := log4go.New(os.Stdout)
+	loger.Open()
+	log4go.G4Logger = loger
+}
 
 func TestNewStock(t *testing.T) {
 	st := "2018-09-05 19:25:32"
