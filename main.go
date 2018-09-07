@@ -37,17 +37,18 @@ func scrumbCreater(s string) string {
 }
 
 func queryView(w http.ResponseWriter, r *http.Request) {
-	var msg Msg
+	qs := libs.QueryStock()
 	t, _ := template.ParseFiles("view/query.gtpl")
-	t.Execute(w, msg)
+	t.Execute(w, qs)
 }
 
 func firstPage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm() //解析url传递的参数，对于POST则解析响应包的主体（request body）
 	//注意:如果没有调用ParseForm方法，下面无法获取表单的数据
-	t, _ := template.ParseFiles("view/first.gtpl")
-	var msg Msg
-	t.Execute(w, msg)
+
+	qs := libs.QueryStock()
+	t, _ := template.ParseFiles("view/query.gtpl")
+	t.Execute(w, qs)
 }
 
 func send(w http.ResponseWriter, r *http.Request) {
@@ -134,6 +135,7 @@ func pluginDo(msg string) string {
 	flog := mlog.LogInst()
 	flog.LogInfo(sTime)
 	st := libs.Crawler_Futu(msg, sTime)
+	st.NewStock()
 	return st.String()
 }
 
@@ -163,11 +165,14 @@ func syscallDo(msg string) string {
 
 func durationPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
-	mt := time.Now().Unix()
-	var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
-	var nt time.Duration = time.Duration(ntt)
-	log.Printf("next report at ", ntt)
-	time.AfterFunc(time.Duration(time.Second*nt), func() {
+	/*
+		        mt := time.Now().Unix()
+		        var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
+			var nt time.Duration = time.Duration(ntt)
+			log.Printf("next report at ", ntt)
+			time.AfterFunc(time.Duration(time.Second*nt), func() {
+	*/
+	time.AfterFunc(time.Duration(time.Second*120), func() {
 		// new log file mybe
 		mlog.InitFilelog(true, "./log")
 		sk := "BABA"
@@ -176,7 +181,6 @@ func durationPing() {
 
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendRobotTextMessage(s)
-		libs.SaveStock(sk, s)
 		/* 防止连续执行  */
 		time.Sleep(60 * time.Second)
 		durationPing()

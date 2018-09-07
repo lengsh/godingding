@@ -43,7 +43,7 @@ func init() {
 func (r Stock) NewStock() int {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
-	sql := fmt.Sprintf("SELECT * FROM stock WHERE  name ='%s' AND trade_date ='%s'", r.Name, r.TradeDate)
+	sql := fmt.Sprintf("SELECT * FROM stockorm WHERE  name ='%s' AND trade_date ='%s'", r.Name, r.TradeDate)
 	fmt.Println(sql)
 	rs = o.Raw(sql)
 	var stocks []Stockorm
@@ -51,7 +51,19 @@ func (r Stock) NewStock() int {
 	if err != nil {
 		fmt.Println(err)
 	} else if num < 1 {
-		id, err := o.Insert(&r)
+		var ns Stockorm = Stockorm{0, r}
+		/*
+			var ns Stockorm = Stockorm{}
+			ns.Name = r.Name
+			ns.HighPrice = r.HighPrice
+			ns.LowPrice = r.LowPrice
+			ns.StartPrice = r.StartPrice
+			ns.EndPrice = r.EndPrice
+			ns.TradeFounds = r.TradeFounds
+			ns.TradeStock = r.TradeStock
+			ns.TradeDate = r.TradeDate
+		*/
+		id, err := o.Insert(&ns)
 		if err != nil {
 		} else {
 			fmt.Println(id)
@@ -61,11 +73,23 @@ func (r Stock) NewStock() int {
 	return 0
 }
 
-func (r Stock) String() string {
-	return fmt.Sprintln("代码：", r.Name, "\n时间：", r.TradeDate, "\n最高价：", r.HighPrice, "\n最低价：", r.LowPrice, "\n开盘价：", r.StartPrice, "\n当前价：", r.EndPrice, "\n成交额：", r.TradeFounds, "亿\n成交量：", r.TradeStock, "万")
-
+func QueryStock() []Stockorm {
+	o := orm.NewOrm()
+	var rs orm.RawSeter
+	sql := fmt.Sprintf("SELECT * FROM stockorm ORDER BY trade_date desc LIMIT 20")
+	//	fmt.Println(sql)
+	rs = o.Raw(sql)
+	var stocks []Stockorm
+	_, err := rs.QueryRows(&stocks)
+	if err != nil {
+		fmt.Println("ERROR:  ", err)
+		return nil
+	} else {
+		return stocks
+	}
 }
 
-func SaveStock(string, s string) {
+func (r Stock) String() string {
+	return fmt.Sprintln("代码：", r.Name, "\n时间：", r.TradeDate, "\n最高价：", r.HighPrice, "\n最低价：", r.LowPrice, "\n开盘价：", r.StartPrice, "\n当前价：", r.EndPrice, "\n成交额：", r.TradeFounds, "亿\n成交量：", r.TradeStock, "万")
 
 }

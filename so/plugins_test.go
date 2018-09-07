@@ -7,7 +7,10 @@ import (
 )
 
 func TestCrawler_Plugins(t *testing.T) {
-	s := libs.Crawler_Stock("baba")
+
+	p := libs.Plugins{"./stockplugin.so"}
+	s := p.Crawler_Stock("baba")
+	fmt.Println("result(timedate):")
 	fmt.Println(s)
 
 }
