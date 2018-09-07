@@ -31,46 +31,65 @@ func scrumbCreater(s string) string {
 	h := md5.New() // 计算MD5散列，引入crypto/md5 并使用 md5.New()方法。
 	h.Write([]byte(str))
 	bs := h.Sum(nil)
-	log.Println(pnum)
-	log.Println(fmt.Sprintf("%x", bs))
+	//	log.Println(pnum)
+	//	log.Println(fmt.Sprintf("%x", bs))
 	return fmt.Sprintf("%x", bs)
 }
 
 func queryView(w http.ResponseWriter, r *http.Request) {
+	flog := mlog.LogInst()
 	qs := libs.QueryStock()
 	t, _ := template.ParseFiles("view/query.gtpl")
-	t.Execute(w, qs)
+	err := t.Execute(w, qs)
+	if err != nil {
+		flog.LogInfo(fmt.Sprint(err))
+	}
 }
 
 func firstPage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm() //解析url传递的参数，对于POST则解析响应包的主体（request body）
 	//注意:如果没有调用ParseForm方法，下面无法获取表单的数据
+	flog := mlog.LogInst()
 
 	qs := libs.QueryStock()
-	t, _ := template.ParseFiles("view/query.gtpl")
-	t.Execute(w, qs)
+	if qs != nil {
+		t, _ := template.ParseFiles("view/query.gtpl")
+		err := t.Execute(w, qs)
+		if err != nil {
+			flog.LogInfo(fmt.Sprint(err))
+		}
+	} else {
+		t, _ := template.ParseFiles("view/first.gtpl")
+		err := t.Execute(w, nil)
+		if err != nil {
+			flog.LogInfo(fmt.Sprint(err))
+		}
+	}
 }
 
 func send(w http.ResponseWriter, r *http.Request) {
+
+	flog := mlog.LogInst()
 	if r.Method == "GET" {
 		r.ParseForm()
 		if m, ok := r.Form["message"]; ok {
-			log.Println("send = ", m[0])
 			if n, ok2 := r.Form[".scrumb"]; ok2 {
 				scrum_new := scrumbCreater("send")
 				if scrum_new == n[0] {
 					dingtalker := libs.NewDingtalker()
-					sm := template.HTMLEscapeString(m[0])
+					sm := m[0] // template.HTMLEscapeString(m[0])
 					dingtalker.SendChatTextMessage(sm)
 				}
 			}
 		}
 	}
-
 	scr := scrumbCreater("send")
 	var msg Msg = Msg{"", scr}
 	t, _ := template.ParseFiles("view/send.gtpl")
-	log.Println(t.Execute(w, msg))
+	err := t.Execute(w, msg)
+	if err != nil {
+		flog.LogInfo(fmt.Sprint(err))
+	}
 }
 
 func query(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +101,7 @@ func query(w http.ResponseWriter, r *http.Request) {
 				scrum_new := scrumbCreater("send")
 				if scrum_new == n[0] {
 					dingtalker := libs.NewDingtalker()
-					sm := template.HTMLEscapeString(m[0])
+					sm := m[0] //  template.HTMLEscapeString(m[0])
 					dingtalker.SendRobotTextMessage(sm)
 				}
 			}
@@ -95,6 +114,8 @@ func query(w http.ResponseWriter, r *http.Request) {
 
 func help(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
+		flog := mlog.LogInst()
+		flog.LogInfo("run help")
 		result, _ := ioutil.ReadAll(r.Body)
 		r.Body.Close()
 
@@ -105,14 +126,14 @@ func help(w http.ResponseWriter, r *http.Request) {
 		text1 := m["text"]
 		text2 := text1.(map[string]interface{})
 		content := text2["content"]
-		log.Println(m)
 		go func() {
 			s := ""
 			if content == nil {
 				s = syscallDo("BABA")
 
 			} else {
-				sm := template.HTMLEscapeString(strings.TrimSpace(fmt.Sprintf("%s", content)))
+				//sm := template.HTMLEscapeString(strings.TrimSpace(fmt.Sprintf("%s", content)))
+				sm := strings.TrimSpace(fmt.Sprintf("%s", content))
 				s = syscallDo(sm)
 			}
 			ss := fmt.Sprintf("@%s\n%s", senderNick, s)
@@ -143,7 +164,6 @@ func syscallDo(msg string) string {
 
 	//  ProcMap := map[string]string{"text":"./bin/world","link":"./bin/stock"}
 	sTime := libs.Crawler_163(msg)
-
 	flog := mlog.LogInst()
 	flog.LogInfo(sTime)
 	/*
@@ -165,14 +185,14 @@ func syscallDo(msg string) string {
 
 func durationPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
-	/*
-		        mt := time.Now().Unix()
-		        var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
-			var nt time.Duration = time.Duration(ntt)
-			log.Printf("next report at ", ntt)
-			time.AfterFunc(time.Duration(time.Second*nt), func() {
-	*/
-	time.AfterFunc(time.Duration(time.Second*120), func() {
+
+	mt := time.Now().Unix()
+	var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
+	var nt time.Duration = time.Duration(ntt)
+	log.Printf("next report at ", ntt)
+	time.AfterFunc(time.Duration(time.Second*nt), func() {
+
+		//time.AfterFunc(time.Duration(time.Second*120), func() {
 		// new log file mybe
 		mlog.InitFilelog(true, "./log")
 		sk := "BABA"

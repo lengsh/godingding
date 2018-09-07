@@ -6,12 +6,6 @@
 
 <a href="/send?">Test</a><TR>
 
-<table border="1" >
-<tr> <th>ID</th><th>Name</th><th>Department</th><th>Number</th></tr>
-{{range .}}
-<tr><th>{{.Id}} </th><th>{{.Name}} </th><th> {{.Department}} </th><th>{{.Number}}</th></tr>
-{{end}}
-</table>
 </div>
 
 </html>

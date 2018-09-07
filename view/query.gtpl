@@ -6,7 +6,7 @@
 
 <form action="login?"  >
 {{range .}}
-<tr><th>{{.Id}} </th><th>{{.Name}} </th><th> {{.HighPrice}} </th><th>{{.LowPrice}}</th><th>{{.TradeStart}}</th><th>{{.TradeEnd}}</th><th>{{.TradeFounds}}</th><th>{{.TradeStock}}</th><th>{{.TradeDate}}</th> </tr>
+<tr><th>{{.Id}} </th><th>{{.Name}} </th><th> {{.HighPrice}} </th><th>{{.LowPrice}}</th><th>{{.StartPrice}}</th><th>{{.EndPrice}}</th><th>{{.TradeFounds}}</th><th>{{.TradeStock}}</th><th>{{.TradeDate}}</th> </tr>
 {{end}}
 
 </table>
