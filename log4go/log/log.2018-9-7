@@ -1,0 +1,2 @@
+2018/09/07 17:35:15 [INFO](/usr/local/go/src/testing/testing.go,827): this is a test
+2018/09/07 17:35:15 [DEBUG](/usr/local/go/src/testing/testing.go,827): Next log should not be writen

@@ -154,11 +154,12 @@ func main() {
 https://github.com/hugozhu/godingtalk
 
 ````
-# 6. 
+# 6. 微信消息和自定义机器人 
 ```
+https://www.jianshu.com/p/96a969ad4b02
 
 ```
-==========================
+## 后台执行服务 
 ```
 nohup让提交的命令忽略 hangup 信号( run a command immune to hangups, with output to a non-tty)
 sudo nohup godingding &
@@ -170,9 +171,8 @@ sudo setsid godingding &
  https://github.com/sevlyar/go-daemon
 
 ```
-==========================
+## vim配置go语法高亮
 ```
-vim配置go语法高亮
 cd ~
 mkdir .vim
 cd .vim

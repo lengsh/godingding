@@ -13,7 +13,7 @@ type Plugins struct {
 func (r Plugins) Crawler_Stock(stk string) string {
 	result := ""
 	if _, err := os.Stat(r.SoFile); os.IsNotExist(err) {
-		fmt.Println("File does not exist")
+		fmt.Println(r.SoFile + "  File does not exist")
 		return result
 	}
 

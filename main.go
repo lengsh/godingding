@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/lengsh/godingding/libs"
-	"github.com/lengsh/godingding/mlog"
+	"github.com/lengsh/godingding/log4go"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -18,6 +18,9 @@ import (
 func init() {
 	// 设置默认数据库
 }
+
+// var gloger  = log4go.New(os.Stdout)
+var gloger = log4go.NewF("./log")
 
 type Msg struct {
 	Message string
@@ -37,39 +40,36 @@ func scrumbCreater(s string) string {
 }
 
 func queryView(w http.ResponseWriter, r *http.Request) {
-	flog := mlog.LogInst()
 	qs := libs.QueryStock()
 	t, _ := template.ParseFiles("view/query.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
-		flog.LogInfo(fmt.Sprint(err))
+		gloger.Error(fmt.Sprint(err))
 	}
 }
 
 func firstPage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm() //解析url传递的参数，对于POST则解析响应包的主体（request body）
 	//注意:如果没有调用ParseForm方法，下面无法获取表单的数据
-	flog := mlog.LogInst()
 
 	qs := libs.QueryStock()
 	if qs != nil {
 		t, _ := template.ParseFiles("view/query.gtpl")
 		err := t.Execute(w, qs)
 		if err != nil {
-			flog.LogInfo(fmt.Sprint(err))
+			gloger.Error(fmt.Sprint(err))
 		}
 	} else {
 		t, _ := template.ParseFiles("view/first.gtpl")
 		err := t.Execute(w, nil)
 		if err != nil {
-			flog.LogInfo(fmt.Sprint(err))
+			gloger.Error(fmt.Sprint(err))
 		}
 	}
 }
 
 func send(w http.ResponseWriter, r *http.Request) {
 
-	flog := mlog.LogInst()
 	if r.Method == "GET" {
 		r.ParseForm()
 		if m, ok := r.Form["message"]; ok {
@@ -77,6 +77,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 				scrum_new := scrumbCreater("send")
 				if scrum_new == n[0] {
 					dingtalker := libs.NewDingtalker()
+					dingtalker.Loger = gloger
 					sm := m[0] // template.HTMLEscapeString(m[0])
 					dingtalker.SendChatTextMessage(sm)
 				}
@@ -88,7 +89,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/send.gtpl")
 	err := t.Execute(w, msg)
 	if err != nil {
-		flog.LogInfo(fmt.Sprint(err))
+		gloger.Error(fmt.Sprint(err))
 	}
 }
 
@@ -101,6 +102,7 @@ func query(w http.ResponseWriter, r *http.Request) {
 				scrum_new := scrumbCreater("send")
 				if scrum_new == n[0] {
 					dingtalker := libs.NewDingtalker()
+					dingtalker.Loger = gloger
 					sm := m[0] //  template.HTMLEscapeString(m[0])
 					dingtalker.SendRobotTextMessage(sm)
 				}
@@ -114,8 +116,6 @@ func query(w http.ResponseWriter, r *http.Request) {
 
 func help(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		flog := mlog.LogInst()
-		flog.LogInfo("run help")
 		result, _ := ioutil.ReadAll(r.Body)
 		r.Body.Close()
 
@@ -138,6 +138,7 @@ func help(w http.ResponseWriter, r *http.Request) {
 			}
 			ss := fmt.Sprintf("@%s\n%s", senderNick, s)
 			dingtalker := libs.NewDingtalker()
+			dingtalker.Loger = gloger
 			dingtalker.SendRobotTextMessage(ss)
 
 		}()
@@ -153,8 +154,7 @@ func pluginDo(msg string) string {
 
 	so := libs.Plugins{"./so/stockplugin.so"}
 	sTime := so.Crawler_Stock(msg)
-	flog := mlog.LogInst()
-	flog.LogInfo(sTime)
+	gloger.Info(sTime)
 	st := libs.Crawler_Futu(msg, sTime)
 	st.NewStock()
 	return st.String()
@@ -164,8 +164,7 @@ func syscallDo(msg string) string {
 
 	//  ProcMap := map[string]string{"text":"./bin/world","link":"./bin/stock"}
 	sTime := libs.Crawler_163(msg)
-	flog := mlog.LogInst()
-	flog.LogInfo(sTime)
+	gloger.Info(sTime)
 	/*
 	   这里测试了一种通过启动了外部进程获得信息的方式，
 	   如果后续有时间，可以增加通过plugin加载.so的方式。
@@ -175,10 +174,10 @@ func syscallDo(msg string) string {
 	lsOut, err := lsCmd.Output()
 	if err != nil {
 		// panic(err)
-		flog.LogError(fmt.Sprintln(err))
+		gloger.Error(fmt.Sprintln(err))
 		return "No Data!"
 	} else {
-		flog.LogInfo(string(lsOut))
+		gloger.Info(string(lsOut))
 		return fmt.Sprintf("%s\n %s", sTime, lsOut)
 	}
 }
@@ -189,17 +188,16 @@ func durationPing() {
 	mt := time.Now().Unix()
 	var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
 	var nt time.Duration = time.Duration(ntt)
-	log.Printf("next report at ", ntt)
 	time.AfterFunc(time.Duration(time.Second*nt), func() {
 
 		//time.AfterFunc(time.Duration(time.Second*120), func() {
 		// new log file mybe
-		mlog.InitFilelog(true, "./log")
 		sk := "BABA"
 		//		s := syscallDo(sk)
 		s := pluginDo(sk)
 
 		dingtalker := libs.NewDingtalker()
+		dingtalker.Loger = gloger
 		dingtalker.SendRobotTextMessage(s)
 		/* 防止连续执行  */
 		time.Sleep(60 * time.Second)
@@ -209,10 +207,8 @@ func durationPing() {
 }
 
 func main() {
-
-	mlog.InitFilelog(true, "./log")
-	flog := mlog.LogInst()
-	flog.LogInfo("test mlog!!")
+	gloger.Open()
+	//	gloger.Close()     //
 
 	durationPing()
 	http.HandleFunc("/", firstPage)        //设置访问的路由
