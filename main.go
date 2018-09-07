@@ -27,6 +27,21 @@ type Msg struct {
 	Scrumb  string
 }
 
+func main() {
+	log4go.G4Logger = gloger
+	// gloger.OpenDebug()
+
+	gloger.CloseDebug() //
+	durationPing()
+	http.HandleFunc("/", firstPage)        //设置访问的路由
+	http.HandleFunc("/send", send)         //设置访问的路由
+	http.HandleFunc("/query", query)       //设置访问的路由
+	http.HandleFunc("/help", help)         //设置访问的路由
+	err := http.ListenAndServe(":80", nil) //设置监听的端口
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
 func scrumbCreater(s string) string {
 	secs := time.Now().Unix()
 	pnum := secs / 60
@@ -200,20 +215,4 @@ func durationPing() {
 		durationPing()
 	})
 
-}
-
-func main() {
-	log4go.G4Logger = gloger
-	gloger.Open()
-
-	//	gloger.Close()     //
-	durationPing()
-	http.HandleFunc("/", firstPage)        //设置访问的路由
-	http.HandleFunc("/send", send)         //设置访问的路由
-	http.HandleFunc("/query", query)       //设置访问的路由
-	http.HandleFunc("/help", help)         //设置访问的路由
-	err := http.ListenAndServe(":80", nil) //设置监听的端口
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
 }

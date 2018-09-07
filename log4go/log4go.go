@@ -31,10 +31,10 @@ func New(out io.Writer) *G4Log {
 	return glog
 }
 
-func (r *G4Log) Open() {
+func (r *G4Log) OpenDebug() {
 	*r.DebugEnabled = true
 }
-func (r *G4Log) Close() {
+func (r *G4Log) CloseDebug() {
 	*r.DebugEnabled = false
 }
 
