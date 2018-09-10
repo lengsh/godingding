@@ -32,7 +32,7 @@ func main() {
 	// gloger.OpenDebug()
 
 	gloger.CloseDebug() //
-	durationPing()
+	// durationPing()
 	http.HandleFunc("/", firstPage)        //设置访问的路由
 	http.HandleFunc("/send", send)         //设置访问的路由
 	http.HandleFunc("/query", query)       //设置访问的路由
@@ -147,7 +147,8 @@ func help(w http.ResponseWriter, r *http.Request) {
 			} else {
 				//sm := template.HTMLEscapeString(strings.TrimSpace(fmt.Sprintf("%s", content)))
 				sm := strings.TrimSpace(fmt.Sprintf("%s", content))
-				s = syscallDo(sm)
+				//s = syscallDo(sm)
+				s = pluginDo(sm)
 			}
 			ss := fmt.Sprintf("@%s\n%s", senderNick, s)
 			dingtalker := libs.NewDingtalker()
@@ -196,11 +197,12 @@ func syscallDo(msg string) string {
 
 func durationPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
-
-	mt := time.Now().Unix()
-	var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
-	var nt time.Duration = time.Duration(ntt)
-	time.AfterFunc(time.Duration(time.Second*nt), func() {
+	/*
+		mt := time.Now().Unix()
+		var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
+		var nt time.Duration = time.Duration(ntt)
+	*/
+	time.AfterFunc(time.Duration(time.Second*7200), func() {
 
 		//time.AfterFunc(time.Duration(time.Second*120), func() {
 		// new log file mybe
@@ -210,8 +212,6 @@ func durationPing() {
 
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendRobotTextMessage(s)
-		/* 防止连续执行  */
-		time.Sleep(60 * time.Second)
 		durationPing()
 	})
 

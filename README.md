@@ -127,13 +127,13 @@ import (
 		"fmt"
        )
 
-var corpid string = "ding5b26ca68f242cff035c2f4657eb6378f"
-var corpsecret string = "2uK2a27AWgkfkVAxd9IdwqG9SO7D01LhWnCgDEYhxff6uGj924NEdrboCivL_Gry"
+var corpid string = "ding5b26ca................f4657eb6378f"
+var corpsecret string = "2uK2a27AWgkfk.......................boCivL_Gry"
 
 func main() {
    c := godingtalk.NewDingTalkClient(corpid, corpsecret)
    c.RefreshAccessToken()
-   var chatid string = "chat8890dbc9d98595c5a1031fe99d8c585e"
+   var chatid string = "chat8890dbc..................85e"
    err = c.SendTextMessage("bc0002", chatid, "测试消息，请忽略3")
    if err != nil {
 	   fmt.Println(err)
@@ -162,7 +162,7 @@ https://www.jianshu.com/p/96a969ad4b02
 ## 后台执行服务 
 ```
 nohup让提交的命令忽略 hangup 信号( run a command immune to hangups, with output to a non-tty)
-sudo nohup godingding &
+sudo nohup godingding 2>&1 &
 or
 sudo setsid godingding &
 
