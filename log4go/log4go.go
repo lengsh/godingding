@@ -17,7 +17,7 @@ type G4Log struct {
 	DebugEnabled *bool
 }
 
-var G4Logger *G4Log
+var g4Logger *G4Log
 
 func init() {
 
@@ -29,6 +29,13 @@ func New(out io.Writer) *G4Log {
 	t := false
 	glog.DebugEnabled = &t
 	return glog
+}
+
+func SetDefaultLoger(r *G4Log) {
+	if r == nil {
+		panic("can't use nil")
+	}
+	g4Logger = r
 }
 
 func (r *G4Log) OpenDebug() {
@@ -126,19 +133,19 @@ func (l *G4Log) Errorf(format string, arg ...interface{}) {
 }
 
 func Error(arg ...interface{}) {
-	if (G4Logger != nil) && (G4Logger.Logger != nil) {
-		G4Logger.Error(arg...)
+	if (g4Logger != nil) && (g4Logger.Logger != nil) {
+		g4Logger.Error(arg...)
 	}
 }
 
 func Debug(arg ...interface{}) {
-	if (G4Logger != nil) && (G4Logger.Logger != nil) {
-		G4Logger.Debug(arg...)
+	if (g4Logger != nil) && (g4Logger.Logger != nil) {
+		g4Logger.Debug(arg...)
 	}
 }
 
 func Info(arg ...interface{}) {
-	if (G4Logger != nil) && (G4Logger.Logger != nil) {
-		G4Logger.Info(arg...)
+	if (g4Logger != nil) && (g4Logger.Logger != nil) {
+		g4Logger.Info(arg...)
 	}
 }

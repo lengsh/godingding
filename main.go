@@ -29,7 +29,7 @@ type Msg struct {
 }
 
 func main() {
-	log4go.G4Logger = gloger
+	log4go.SetDefaultLoger(gloger)
 	// gloger.OpenDebug()
 
 	gloger.CloseDebug() //
