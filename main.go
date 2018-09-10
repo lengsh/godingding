@@ -31,8 +31,8 @@ type Msg struct {
 func main() {
 	log4go.SetDefaultLoger(gloger)
 	// gloger.OpenDebug()
-
-	gloger.CloseDebug() //
+	gloger.CloseDebug()    //
+	gloger.ClosePosition() //
 
 	http.HandleFunc("/", firstPage)  //设置访问的路由
 	http.HandleFunc("/send", send)   //设置访问的路由

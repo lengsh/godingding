@@ -14,7 +14,8 @@ import (
 
 type G4Log struct {
 	Logger       *log.Logger
-	DebugEnabled *bool
+	debugEnabled *bool
+	position     *bool
 }
 
 var g4Logger *G4Log
@@ -27,7 +28,8 @@ func New(out io.Writer) *G4Log {
 	glog := new(G4Log)
 	glog.Logger = log.New(out, "", log.LstdFlags)
 	t := false
-	glog.DebugEnabled = &t
+	glog.debugEnabled = &t
+	*glog.position = false
 	return glog
 }
 
@@ -38,11 +40,18 @@ func SetDefaultLoger(r *G4Log) {
 	g4Logger = r
 }
 
+func (r *G4Log) OpenPosition() {
+	*r.position = true
+}
+func (r *G4Log) ClosePosition() {
+	*r.position = false
+}
+
 func (r *G4Log) OpenDebug() {
-	*r.DebugEnabled = true
+	*r.debugEnabled = true
 }
 func (r *G4Log) CloseDebug() {
-	*r.DebugEnabled = false
+	*r.debugEnabled = false
 }
 
 func NewF(fp string) *G4Log {
@@ -86,49 +95,63 @@ func getCaller() (string, int) {
 }
 
 func (l *G4Log) Debug(arg ...interface{}) {
-	if !*l.DebugEnabled {
+	if !*l.debugEnabled {
 		return
 	}
-	fn, line := getCaller()
-	s := fmt.Sprintf("[DEBUG](%s,%d):", fn, line)
-	arg = append([]interface{}{s}, arg...)
+	if *l.position {
+		fn, line := getCaller()
+		s := fmt.Sprintf("[DEBUG](%s,%d):", fn, line)
+		arg = append([]interface{}{s}, arg...)
+	}
 	l.Logger.Println(arg...)
 }
 
 func (l *G4Log) Debugf(format string, arg ...interface{}) {
-	if !*l.DebugEnabled {
+	if !*l.debugEnabled {
 		return
 	}
-	fn, line := getCaller()
-	s := fmt.Sprintf("[DEBUG](%s,%d):", fn, line)
+	s := ""
+	if *l.position {
+		fn, line := getCaller()
+		s = fmt.Sprintf("[DEBUG](%s,%d):", fn, line)
+	}
+
 	l.Logger.Printf(s+format, arg...)
 }
 
 func (l *G4Log) Info(arg ...interface{}) {
-
-	fn, line := getCaller()
-	s := fmt.Sprintf("[INFO](%s,%d):", fn, line)
-	arg = append([]interface{}{s}, arg...)
+	if *l.position {
+		fn, line := getCaller()
+		s := fmt.Sprintf("[INFO](%s,%d):", fn, line)
+		arg = append([]interface{}{s}, arg...)
+	}
 	l.Logger.Println(arg...)
 }
 
 func (l *G4Log) Infof(format string, arg ...interface{}) {
-
-	fn, line := getCaller()
-	s := fmt.Sprintf("[INFO](%s,%d):", fn, line)
+	s := ""
+	if *l.position {
+		fn, line := getCaller()
+		s = fmt.Sprintf("[INFO](%s,%d):", fn, line)
+	}
 	l.Logger.Printf(s+format, arg...)
 }
 
 func (l *G4Log) Error(arg ...interface{}) {
-	fn, line := getCaller()
-	s := fmt.Sprintf("[ERROR](%s,%d):", fn, line)
-	arg = append([]interface{}{s}, arg...)
+	if *l.position {
+		fn, line := getCaller()
+		s := fmt.Sprintf("[ERROR](%s,%d):", fn, line)
+		arg = append([]interface{}{s}, arg...)
+	}
 	l.Logger.Println(arg...)
 }
 
 func (l *G4Log) Errorf(format string, arg ...interface{}) {
-	fn, line := getCaller()
-	s := fmt.Sprintf("[ERROR](%s,%d):", fn, line)
+	s := ""
+	if *l.position {
+		fn, line := getCaller()
+		s = fmt.Sprintf("[ERROR](%s,%d):", fn, line)
+	}
 	l.Logger.Printf(s+format, arg...)
 }
 
