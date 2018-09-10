@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/jasonlvhit/gocron"
 	"github.com/lengsh/godingding/libs"
 	"github.com/lengsh/godingding/log4go"
 	"html/template"
@@ -32,11 +33,17 @@ func main() {
 	// gloger.OpenDebug()
 
 	gloger.CloseDebug() //
-	// durationPing()
-	http.HandleFunc("/", firstPage)        //设置访问的路由
-	http.HandleFunc("/send", send)         //设置访问的路由
-	http.HandleFunc("/query", query)       //设置访问的路由
-	http.HandleFunc("/help", help)         //设置访问的路由
+
+	http.HandleFunc("/", firstPage)  //设置访问的路由
+	http.HandleFunc("/send", send)   //设置访问的路由
+	http.HandleFunc("/query", query) //设置访问的路由
+	http.HandleFunc("/help", help)   //设置访问的路由
+
+	scheduler := gocron.NewScheduler()
+	job1 := scheduler.Every(1).Day().At("07:01")
+	job1.Do(durationPing) // durationPing()
+	scheduler.Start()
+
 	err := http.ListenAndServe(":80", nil) //设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
@@ -197,22 +204,8 @@ func syscallDo(msg string) string {
 
 func durationPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
-	/*
-		mt := time.Now().Unix()
-		var ntt = 3600*24 - (mt%(3600*24) + 8*3600) + 7*3600
-		var nt time.Duration = time.Duration(ntt)
-	*/
-	time.AfterFunc(time.Duration(time.Second*7200), func() {
-
-		//time.AfterFunc(time.Duration(time.Second*120), func() {
-		// new log file mybe
-		sk := "BABA"
-		//		s := syscallDo(sk)
-		s := pluginDo(sk)
-
-		dingtalker := libs.NewDingtalker()
-		dingtalker.SendRobotTextMessage(s)
-		durationPing()
-	})
-
+	sk := "BABA"
+	//	s := pluginDo(sk)
+	dingtalker := libs.NewDingtalker()
+	dingtalker.SendRobotTextMessage(sk)
 }
