@@ -29,7 +29,8 @@ func New(out io.Writer) *G4Log {
 	glog.Logger = log.New(out, "", log.LstdFlags)
 	t := false
 	glog.debugEnabled = &t
-	*glog.position = false
+	p := false
+	glog.position = &p
 	return glog
 }
 
@@ -41,17 +42,21 @@ func SetDefaultLoger(r *G4Log) {
 }
 
 func (r *G4Log) OpenPosition() {
-	*r.position = true
+	t := true
+	r.position = &t
 }
 func (r *G4Log) ClosePosition() {
-	*r.position = false
+	t := false
+	r.position = &t
 }
 
 func (r *G4Log) OpenDebug() {
-	*r.debugEnabled = true
+	t := true
+	r.debugEnabled = &t
 }
 func (r *G4Log) CloseDebug() {
-	*r.debugEnabled = false
+	t := false
+	r.debugEnabled = &t
 }
 
 func NewF(fp string) *G4Log {

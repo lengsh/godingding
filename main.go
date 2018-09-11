@@ -174,7 +174,7 @@ func pluginDo(msg string) string {
 
 	so := libs.Plugins{"./so/stockplugin.so"}
 	sTime := so.Crawler_Stock(msg)
-	gloger.Info(sTime)
+	gloger.Info("Stock Time = ", sTime)
 	st := libs.Crawler_Futu(msg, sTime)
 	st.NewStock()
 	return st.String()
@@ -205,7 +205,7 @@ func syscallDo(msg string) string {
 func durationPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
 	sk := "BABA"
-	//	s := pluginDo(sk)
+	s := pluginDo(sk)
 	dingtalker := libs.NewDingtalker()
-	dingtalker.SendRobotTextMessage(sk)
+	dingtalker.SendRobotTextMessage(s)
 }
