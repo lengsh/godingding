@@ -2,8 +2,9 @@ package libs
 
 import (
 	"fmt"
+	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
-	"github.com/lengsh/godingding/log4go"
+	//	"github.com/lengsh/godingding/log4go"
 	_ "github.com/mattn/go-sqlite3"
 	//     _ "github.com/go-sql-driver/mysql" // 导入数据库驱动
 )
@@ -44,18 +45,18 @@ func (r Stock) NewStock() int {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
 	sql := fmt.Sprintf("SELECT * FROM stockorm WHERE  name ='%s' AND trade_date ='%s'", r.Name, r.TradeDate)
-	log4go.Debug(sql)
+	logs.Debug(sql)
 	rs = o.Raw(sql)
 	var stocks []Stockorm
 	num, err := rs.QueryRows(&stocks)
 	if err != nil {
-		log4go.Error(err)
+		logs.Error(err)
 	} else if num < 1 {
 		var ns Stockorm = Stockorm{0, r}
 		id, err := o.Insert(&ns)
 		if err != nil {
 		} else {
-			log4go.Info(id)
+			logs.Info(id)
 			return 1
 		}
 	}
@@ -66,12 +67,12 @@ func QueryStock() []Stockorm {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
 	sql := fmt.Sprintf("SELECT * FROM stockorm ORDER BY trade_date desc LIMIT 20")
-	log4go.Debug(sql)
+	logs.Debug(sql)
 	rs = o.Raw(sql)
 	var stocks []Stockorm
 	_, err := rs.QueryRows(&stocks)
 	if err != nil {
-		log4go.Error(err)
+		logs.Error(err)
 		return nil
 	} else {
 		return stocks

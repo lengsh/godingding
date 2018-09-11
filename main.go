@@ -4,9 +4,10 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"github.com/astaxie/beego/logs"
 	"github.com/jasonlvhit/gocron"
 	"github.com/lengsh/godingding/libs"
-	"github.com/lengsh/godingding/log4go"
+	// "github.com/lengsh/godingding/log4go"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -16,9 +17,6 @@ import (
 	"time"
 )
 
-var gloger = log4go.NewF("./log")
-
-// var gloger  = log4go.New(os.Stdout)
 func init() {
 
 }
@@ -29,10 +27,10 @@ type Msg struct {
 }
 
 func main() {
-	log4go.SetDefaultLoger(gloger)
-	// gloger.OpenDebug()
-	gloger.CloseDebug()    //
-	gloger.ClosePosition() //
+
+	logs.SetLogger(logs.AdapterFile, `{"filename":"./log/godingding.log","maxlines":10000,"maxsize":102400,"daily":true,"maxdays":2}`)
+	logs.EnableFuncCallDepth(true)
+	logs.SetLogFuncCallDepth(3)
 
 	http.HandleFunc("/", firstPage)  //设置访问的路由
 	http.HandleFunc("/send", send)   //设置访问的路由
@@ -66,7 +64,7 @@ func queryView(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/query.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
-		gloger.Error(fmt.Sprint(err))
+		logs.Error(fmt.Sprint(err))
 	}
 }
 
@@ -79,13 +77,13 @@ func firstPage(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("view/query.gtpl")
 		err := t.Execute(w, qs)
 		if err != nil {
-			gloger.Error(fmt.Sprint(err))
+			logs.Error(fmt.Sprint(err))
 		}
 	} else {
 		t, _ := template.ParseFiles("view/first.gtpl")
 		err := t.Execute(w, nil)
 		if err != nil {
-			gloger.Error(fmt.Sprint(err))
+			logs.Error(fmt.Sprint(err))
 		}
 	}
 }
@@ -110,7 +108,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/send.gtpl")
 	err := t.Execute(w, msg)
 	if err != nil {
-		gloger.Error(fmt.Sprint(err))
+		logs.Error(fmt.Sprint(err))
 	}
 }
 
@@ -174,7 +172,7 @@ func pluginDo(msg string) string {
 
 	so := libs.Plugins{"./so/stockplugin.so"}
 	sTime := so.Crawler_Stock(msg)
-	gloger.Info("Stock Time = ", sTime)
+	logs.Info("Stock Time = ", sTime)
 	st := libs.Crawler_Futu(msg, sTime)
 	st.NewStock()
 	return st.String()
@@ -184,7 +182,7 @@ func syscallDo(msg string) string {
 
 	//  ProcMap := map[string]string{"text":"./bin/world","link":"./bin/stock"}
 	sTime := libs.Crawler_163(msg)
-	gloger.Info(sTime)
+	logs.Info(sTime)
 	/*
 	   这里测试了一种通过启动了外部进程获得信息的方式，
 	   如果后续有时间，可以增加通过plugin加载.so的方式。
@@ -194,17 +192,16 @@ func syscallDo(msg string) string {
 	lsOut, err := lsCmd.Output()
 	if err != nil {
 		// panic(err)
-		gloger.Error(fmt.Sprintln(err))
+		logs.Error(fmt.Sprintln(err))
 		return "No Data!"
 	} else {
-		gloger.Info(string(lsOut))
+		logs.Info(string(lsOut))
 		return fmt.Sprintf("%s\n %s", sTime, lsOut)
 	}
 }
 
 func durationPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
-	gloger = log4go.NewF("./log") // new logfile
 	sk := "BABA"
 	s := pluginDo(sk)
 	dingtalker := libs.NewDingtalker()

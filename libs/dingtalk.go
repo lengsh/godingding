@@ -1,8 +1,9 @@
 package libs
 
 import (
+	"github.com/astaxie/beego/logs"
 	"github.com/hugozhu/godingtalk"
-	"github.com/lengsh/godingding/log4go"
+	// "github.com/lengsh/godingding/log4go"
 	// "log"
 )
 
@@ -28,25 +29,25 @@ func NewDingtalker() *Dingtalker {
 }
 
 func (r *Dingtalker) SendChatTextMessage(msg string) {
-	log4go.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
+	logs.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
 	c := godingtalk.NewDingTalkClient(r.CorpId, r.CorpSecret)
 	c.RefreshAccessToken()
-	log4go.Debug("AccessToken = ", c.AccessToken)
+	logs.Debug("AccessToken = ", c.AccessToken)
 	err := c.SendTextMessage("YY", r.ChatId, msg)
 	if err != nil {
-		log4go.Error(err)
+		logs.Error(err)
 	}
 }
 
 func (r *Dingtalker) SendRobotTextMessage(msg string) {
-	log4go.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
+	logs.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
 	c := godingtalk.NewDingTalkClient(r.CorpId, r.CorpSecret)
 	if c != nil {
 		c.RefreshAccessToken()
-		log4go.Debug("AccessToken = ", c.AccessToken)
+		logs.Debug("AccessToken = ", c.AccessToken)
 		err := c.SendRobotTextMessage(r.AcToken, msg)
 		if err != nil {
-			log4go.Error(err)
+			logs.Error(err)
 		}
 	}
 }
