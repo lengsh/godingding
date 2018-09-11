@@ -204,6 +204,7 @@ func syscallDo(msg string) string {
 
 func durationPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
+	gloger = log4go.NewF("./log") // new logfile
 	sk := "BABA"
 	s := pluginDo(sk)
 	dingtalker := libs.NewDingtalker()

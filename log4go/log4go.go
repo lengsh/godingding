@@ -87,6 +87,10 @@ func NewF(fp string) *G4Log {
 		panic("log file open error : " + fp + "/" + filename + "\n")
 	}
 
+	defer func() {
+		Info("close file ", fp, filename)
+		f.Close()
+	}()
 	return New(f)
 }
 
