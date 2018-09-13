@@ -2,6 +2,7 @@ package libs
 
 import (
 	"fmt"
+	"github.com/astaxie/beego/logs"
 	"os"
 	"plugin"
 )
@@ -24,7 +25,7 @@ func (r Plugins) Crawler_Stock(stk string) string {
 	}
 	crawlerstock, err := p.Lookup("CrawlerStock")
 	if err != nil {
-		fmt.Println(err)
+		logs.Error(err)
 		return result
 	}
 	result = crawlerstock.(func(string) string)(stk)

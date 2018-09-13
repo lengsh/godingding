@@ -53,6 +53,7 @@ func Crawler_163(st string) string {
 		idx2 = strings.Index(s2, "</span>")
 		sTime := s2[idx1+2 : idx2]
 		if len(sTime) > 4 {
+			logs.Debug("163'Datetime = ", sTime)
 			return sTime
 		} else {
 			return sm
@@ -63,6 +64,10 @@ func Crawler_163(st string) string {
 }
 
 func Crawler_Futu(st string, dt string) Stock {
+	if len(dt) < 10 {
+		dt = time.Now().Format("2006-01-02 15:04:05")
+		logs.Error("datetime Error ,reset current datetime = ", dt)
+	}
 	stk := strings.ToUpper(st)
 	surl := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", stk)
 
@@ -147,7 +152,7 @@ func Crawler_Futu(st string, dt string) Stock {
 	fTradeStock, err := strconv.ParseFloat(sJL, 64)
 	fHigh, err := strconv.ParseFloat(sGao, 64)
 	fLow, err := strconv.ParseFloat(sDi, 64)
-
-	return Stock{stk, fStart, fEnd, fHigh, fLow, fTradeStock, fTradeFounds, dt}
+	logs.Debug("KAI:", sKai, "; SHOU:", sCur, ";GAO:", sGao, ";DI:", sDi, ";LANG:", sJL, ";E:", sJE, ";TIME:", dt)
+	return Stock{stk, fHigh, fLow, fStart, fEnd, fTradeStock, fTradeFounds, dt}
 	//	fmt.Sprintln("最高价：", sGao, "\n最低价：", sDi, "\n开盘价：", sKai, "\n当前价：", sCur, "\n成交额：", sJE, "\n成交量：", sJL)
 }
