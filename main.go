@@ -7,7 +7,6 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/jasonlvhit/gocron"
 	"github.com/lengsh/godingding/libs"
-	// "github.com/lengsh/godingding/log4go"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -39,7 +38,9 @@ func main() {
 
 	scheduler := gocron.NewScheduler()
 	job1 := scheduler.Every(1).Day().At("07:01")
-	job1.Do(durationPing) // durationPing()
+	job1.Do(durationPing)                // durationPing()
+	scheduler.Every(1).Day().Do(crawJob) // durationPing()
+	// scheduler.Every(1).Hour().Do(crawJob) // durationPing()
 	scheduler.Start()
 
 	err := http.ListenAndServe(":80", nil) //设置监听的端口
@@ -206,4 +207,13 @@ func durationPing() {
 	s := pluginDo(sk)
 	dingtalker := libs.NewDingtalker()
 	dingtalker.SendRobotTextMessage(s)
+}
+
+func crawJob() {
+	go func() {
+		s := time.Now().Format("2006-01-02 15:04:05")
+		libs.CrawlJob()
+		dingtalker := libs.NewDingtalker()
+		dingtalker.SendChatTextMessage(s)
+	}()
 }
