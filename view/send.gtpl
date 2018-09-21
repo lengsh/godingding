@@ -16,5 +16,14 @@
 </tr>
 </table>
 </div>
+ 
+ <TR><a href="/first">HomePage</a><TR>
+ <BR>
+ <TR><a href="/send?">SendMessage</a><TR>
+ <BR>
+ <TR><a href="/query?do=stock">Stock</a><TR>
+ <BR>
+ <TR><a href="/query?do=movie">Movie</a><TR>
+
 
 </html>

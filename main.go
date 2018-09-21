@@ -75,8 +75,18 @@ func queryStock(w http.ResponseWriter, r *http.Request) {
 
 func queryMovie(w http.ResponseWriter, r *http.Request) {
 	qs := libs.QueryLastMovies(100)
+	var qms []libs.TagMovie = make([]libs.TagMovie, len(qs))
+
+	for k, rs := range qs {
+		s := ""
+		if rs.Rate > 100 {
+			s = fmt.Sprintf("RED")
+		}
+		qms[k] = libs.TagMovie{rs, s}
+	}
+
 	t, _ := template.ParseFiles("view/movie.gtpl")
-	err := t.Execute(w, qs)
+	err := t.Execute(w, qms)
 	if err != nil {
 		logs.Error(fmt.Sprint(err))
 	}

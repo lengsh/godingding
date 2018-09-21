@@ -11,28 +11,10 @@ import (
 // Model Struct
 // https://beego.me/docs/mvc/model/models.md#%E6%A8%A1%E5%9E%8B%E5%AD%97%E6%AE%B5%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%AF%B9%E5%BA%94
 
-/*
-type Movie struct {
-	Id          int
-	Company     string  `orm:"size(20); index"`
-	Name        string  `orm:"size(32); index"`
-	Rate        float32 `orm: "default(0)"`
-	Releasetime string  `orm:"size(32); index"`
+type TagMovie struct {
+	Movie
+	TagRate string
 }
-
-func init() {
-	// 设置默认数据库
-
-	orm.RegisterDriver("mysql", orm.DRMySQL)
-	orm.RegisterDataBase("default", "mysql", "lengsh:hsgnel@/movie?charset=utf8")
-	//("mysql", "user:password@/dbname")
-	// 注册定义的 model
-
-	orm.RegisterModel(new(Movie))
-	orm.RunSyncdb("default", false, true)
-
-}
-*/
 
 func (r Movie) NewMovie() int {
 	o := orm.NewOrm()
