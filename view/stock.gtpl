@@ -1,7 +1,7 @@
 <html>
 <br><br><BR>
-<div align="center">
-<table border="1" >
+<div align="center" width=520>
+<table border="1" cellspacing="0" cellpadding="0">
 <tr> <th>ID</th><th>Name</th><th>High</th><th>Low</th><th>Start</th><th>Current</th><th>Founds</th><th>Stocks</th><th>Date</th></tr>
 
 <form action="login?"  >

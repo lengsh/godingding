@@ -7,39 +7,33 @@ import (
 	"github.com/tebeka/selenium/chrome"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-func CrawlJob() {
-
-	url := "http://m.iqiyi.com/vip/timeLine.html"
-
-	t := time.Now()
-	fo := fmt.Sprintf("%d-%02d-%02d-%02d", t.Year(), t.Month(), t.Day()-1, t.Hour()) //, t.Minute(), t.Second())
-	fn := fmt.Sprintf("%d-%02d-%02d-%02d", t.Year(), t.Month(), t.Day(), t.Hour())   //, t.Minute(), t.Second())
-
-	//fn := time.Now().Format("2006-01-02-15")
-	fo = "./data/" + fo + "-iqiyi.html"
-	err := os.Remove(fo) //删除24hours ago
-	if err != nil {
-		logs.Error(err)
-		//输出错误详细信息
-	}
-	//	fn := time.Now().Format("2006-01-02-15")
-	fn = "./data/" + fn + "-iqiyi.html"
-	_, err = os.Stat(fn) //os.Stat获取文件信息
-	if err != nil {
-		if os.IsExist(err) {
-			logs.Error(err)
-			return
+func CrawlMovieJob() {
+	/*
+		company := strings.ToUpper(com)
+		switch company {
+		case "IQIYI":
+			crawlIqiyiByChrome()
+		case "TX":
+			crawlTxByChrome()
 		}
-		logs.Debug("craw object:", fn)
-		crawlByChrome(url, fn)
-	}
+	*/
+	crawlIqiyiByChrome()
+	crawlTxByChrome()
 }
 
-func crawlByChrome(url string, fn string) {
+func crawlTxByChrome() {
+
+	url := "http://film.qq.com/weixin/upcoming.html"
+	fmt.Println(url)
+}
+
+func crawlIqiyiByChrome() {
+	url := "http://m.iqiyi.com/vip/timeLine.html"
 	// StartChrome 启动谷歌浏览器headless模式
 	opts := []selenium.ServiceOption{}
 	caps := selenium.Capabilities{
@@ -89,18 +83,19 @@ func crawlByChrome(url string, fn string) {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 	}
 	//      fmt.Println(webDriver.Title())
-	pick_data := ""
-	elem, err := webDriver.FindElement(selenium.ByClassName, "m-vip-timer-nav") //ByCSSSelector, "m-vip-timer-shaft")
-	if err != nil {
-		logs.Error(err)
-	}
-	output, err := elem.Text()
-	if err != nil {
-		logs.Error(err)
-	}
-	pick_data += output
-
-	elem, err = webDriver.FindElement(selenium.ByClassName, "m-vip-timer-shaft")
+	t := time.Now()
+	fo := fmt.Sprintf("%d ", t.Year()) // , t.Month(), t.Day()-10, t.Hour()) //, t.Minute(), t.Second())
+	/*
+		elem, err := webDriver.FindElement(selenium.ByClassName, "m-vip-timer-nav") //ByCSSSelector, "m-vip-timer-shaft")
+		if err != nil {
+			logs.Error(err)
+		}
+		output, err := elem.Text()
+		if err != nil {
+			logs.Error(err)
+		}
+	*/
+	elem, err := webDriver.FindElement(selenium.ByClassName, "m-vip-timer-shaft")
 	if err != nil {
 		logs.Error(err)
 	}
@@ -110,36 +105,43 @@ func crawlByChrome(url string, fn string) {
 		logs.Error(err)
 	}
 
-	pick_data += "\n"
 	for _, el := range melems {
 		//	fmt.Println("\nNo.", k)
-		pick_data += "\n"
+		var mo Movie
+		mo.Company = "IQIYI"
+		rt := ""
 		elem, err := el.FindElement(selenium.ByClassName, "title")
 		if err != nil {
 			// fmt.Println(err)
-			pick_data += "\n时间：<等待排期>"
+			rt = "wait"
 		} else {
-			pick_data += "\n时间："
 			s, _ := elem.Text()
-			pick_data += s
+			rt = fo + strings.TrimSpace(s)
 		}
+		mo.Releasetime = rt
+
 		elem, err = el.FindElement(selenium.ByClassName, "c-title")
 		if err != nil {
 			//fmt.Println(err)
 		} else {
-			pick_data += "\n影名："
 			s, _ := elem.Text()
-			pick_data += s
+			mo.Name = strings.TrimSpace(s)
 		}
+
 		elem, err = el.FindElement(selenium.ByClassName, "album-history")
 		if err != nil {
 			//fmt.Println(err)
 		} else {
-			pick_data += "\n预约人数（万）："
 			s, _ := elem.Text()
 			s = strings.Replace(s, "万人已预约", "", -1)
-			pick_data += s
+			value, err := strconv.ParseFloat(s, 32)
+			if err != nil {
+				// do something sensible
+				value = 0
+			}
+			mo.Rate = float32(value)
 		}
+		mo.NewMovie()
 	}
 	/*
 		str, err := webDriver.PageSource()
@@ -147,9 +149,34 @@ func crawlByChrome(url string, fn string) {
 			fmt.Println(err)
 		}
 	*/
-	wc := []byte(pick_data)
-	err = ioutil.WriteFile(fn, wc, 0644)
+}
+
+func saveAsfile(com string, wdata string) {
+
+	na := strings.ToUpper(com)
+	t := time.Now()
+	fo := fmt.Sprintf("%d-%02d-%02d-%02d", t.Year(), t.Month(), t.Day()-10, t.Hour()) //, t.Minute(), t.Second())
+	fn := fmt.Sprintf("%d-%02d-%02d-%02d", t.Year(), t.Month(), t.Day(), t.Hour())    //, t.Minute(), t.Second())
+
+	//fn := time.Now().Format("2006-01-02-15")
+	fo = "./data/" + fo + "-" + na + ".html"
+	err := os.Remove(fo) //删除24hours ago
 	if err != nil {
 		logs.Error(err)
+		//输出错误详细信息
+	}
+	//	fn := time.Now().Format("2006-01-02-15")
+	fn = "./data/" + fn + "-" + na + ".html"
+	_, err = os.Stat(fn) //os.Stat获取文件信息
+	if err != nil {
+		if os.IsExist(err) {
+			logs.Error(err)
+			return
+		}
+		logs.Debug("craw object:", fn)
+		err = ioutil.WriteFile(fn, []byte(wdata), 0644)
+		if err != nil {
+			logs.Error(err)
+		}
 	}
 }

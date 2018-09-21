@@ -38,9 +38,13 @@ func main() {
 
 	scheduler := gocron.NewScheduler()
 	job1 := scheduler.Every(1).Day().At("07:01")
-	job1.Do(durationPing)                // durationPing()
-	scheduler.Every(1).Day().Do(crawJob) // durationPing()
-	// scheduler.Every(1).Hour().Do(crawJob) // durationPing()
+	job1.Do(stockPing)
+
+	job2 := scheduler.Every(1).Day().At("08:01")
+	job2.Do(crawMovieJob)
+
+	//scheduler.Every(1).Day().Do(crawJob)
+	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
 
 	err := http.ListenAndServe(":80", nil) //设置监听的端口
@@ -60,9 +64,18 @@ func scrumbCreater(s string) string {
 	return fmt.Sprintf("%x", bs)
 }
 
-func queryView(w http.ResponseWriter, r *http.Request) {
+func queryStock(w http.ResponseWriter, r *http.Request) {
 	qs := libs.QueryStock()
-	t, _ := template.ParseFiles("view/query.gtpl")
+	t, _ := template.ParseFiles("view/stock.gtpl")
+	err := t.Execute(w, qs)
+	if err != nil {
+		logs.Error(fmt.Sprint(err))
+	}
+}
+
+func queryMovie(w http.ResponseWriter, r *http.Request) {
+	qs := libs.QueryLastMovies(100)
+	t, _ := template.ParseFiles("view/movie.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
 		logs.Error(fmt.Sprint(err))
@@ -114,23 +127,27 @@ func send(w http.ResponseWriter, r *http.Request) {
 }
 
 func query(w http.ResponseWriter, r *http.Request) {
+	key := 0
 	if r.Method == "GET" {
 		//	queryView(w, r)
 		r.ParseForm()
-		if m, ok := r.Form["message"]; ok {
-			if n, ok2 := r.Form[".scrumb"]; ok2 {
-				scrum_new := scrumbCreater("send")
-				if scrum_new == n[0] {
-					dingtalker := libs.NewDingtalker()
-					sm := m[0] //  template.HTMLEscapeString(m[0])
-					dingtalker.SendRobotTextMessage(sm)
-				}
+		if m, ok := r.Form["do"]; ok {
+			if m[0] == "stock" {
+				key = 1
+			} else if m[0] == "movie" {
+				key = 2
 			}
 		}
-
-	} else {
 	}
-	firstPage(w, r)
+	switch key {
+	case 2:
+		queryMovie(w, r)
+	case 1:
+		queryStock(w, r)
+	default:
+		t, _ := template.ParseFiles("view/index.gtpl")
+		t.Execute(w, nil)
+	}
 }
 
 func help(w http.ResponseWriter, r *http.Request) {
@@ -161,6 +178,10 @@ func help(w http.ResponseWriter, r *http.Request) {
 			dingtalker.SendRobotTextMessage(ss)
 
 		}()
+	}
+
+	if r.Method == "GET" {
+		// return data/xxx.data
 	}
 }
 
@@ -201,7 +222,7 @@ func syscallDo(msg string) string {
 	}
 }
 
-func durationPing() {
+func stockPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
 	sk := "BABA"
 	s := pluginDo(sk)
@@ -209,10 +230,10 @@ func durationPing() {
 	dingtalker.SendRobotTextMessage(s)
 }
 
-func crawJob() {
+func crawMovieJob() {
 	go func() {
 		s := time.Now().Format("2006-01-02 15:04:05")
-		libs.CrawlJob()
+		libs.CrawlMovieJob()
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendChatTextMessage(s)
 	}()
