@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
+	"time"
 	//_ "github.com/mattn/go-sqlite3"
 	_ "github.com/go-sql-driver/mysql" // 导入数据库驱动
 )
@@ -90,6 +91,29 @@ func QueryNameMovies(name string) []Movie {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
 	sql := fmt.Sprintf("SELECT * FROM movie WHERE name='%s'", name)
+	logs.Debug(sql)
+	rs = o.Raw(sql)
+	var ms []Movie
+	_, err := rs.QueryRows(&ms)
+	if err != nil {
+		logs.Error(err)
+		return nil
+	} else {
+		return ms
+	}
+}
+
+func QueryTopMovies(com string, top int) []Movie {
+	if top > 100 {
+		logs.Error("num is too big!!")
+		return nil
+	}
+	t := time.Now()
+	fo := fmt.Sprintf("%d %02d月%02d日", t.Year(), t.Month(), t.Day())
+
+	o := orm.NewOrm()
+	var rs orm.RawSeter
+	sql := fmt.Sprintf("SELECT * FROM movie WHERE company='%s' AND releasetime >='%s' ORDER BY rate desc LIMIT %d", com, fo, top)
 	logs.Debug(sql)
 	rs = o.Raw(sql)
 	var ms []Movie

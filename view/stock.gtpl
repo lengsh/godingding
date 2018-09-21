@@ -11,13 +11,13 @@
 </table>
 </div>
 
-<div align="center">
-<BR>
-<TR><a href="/send?">SendMessage</a><TR>
-<BR>
-<TR><a href="/query?do=stock">Stock</a><TR>
-<BR>
-<TR><a href="/query?do=movie">Movie</a><TR>
 
+<BR>
+<div align="center">
+
+<TR><a href="/first">Home</a><TR>
+<TR><a href="/send?">SendMessage</a><TR>
+<TR><a href="/query?do=stock">Stock</a><TR>
+<TR><a href="/query?do=movie">Movie</a><TR>
 </div>
 </html>

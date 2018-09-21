@@ -10,15 +10,14 @@
 {{else}}
 {{.Rate}}
 {{end}}
-万 
 </th><th>{{.Releasetime}}</th><th>{{.Company}}</th> </tr>
 {{end}}
 
 </table>
 </div>
-
+<BR><BR>
 <div align="center">
-
+<TR><a href="/first?">Home</a><TR>
 <TR><a href="/send?">Test</a><TR>
 <TR><a href="/query?do=stock">Stock</a><TR>
 <TR><a href="/query?do=movie">Movie</a><TR>

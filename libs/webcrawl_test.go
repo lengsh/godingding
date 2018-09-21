@@ -6,5 +6,7 @@ import (
 )
 
 func TestCrawler_Chromedriver(t *testing.T) {
-	libs.CrawlMovieJob()
+
+	//	libs.CrawlMovieJob()
+	libs.CrawlTxByChrome()
 }

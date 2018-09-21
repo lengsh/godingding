@@ -1,10 +1,17 @@
 <html>
-<br><br><BR>
+<BR>
+<div align=center> 
+ <TR><a href="/first">HomePage</a><TR>
+<TR> <TR><a href="/send?">SendMessage</a><TR>
+<TR> <TR><a href="/query?do=stock">Stock</a><TR>
+<TR> <TR><a href="/query?do=movie">Movie</a><TR>
+</div>
+<BR><BR>
 <div align="center">
 <table border="0">
 <form action="login?"  >
 <tr>
-<th>Message: </th><th><input name="message" type=text /> </th>
+<th>Message: </th><th><input name="message" type=text size=48 /> </th>
 </tr>
 <tr>
 <th><input name=".scrumb" type=hidden value="{{.Scrumb}}" /></th><th></th>
@@ -16,14 +23,4 @@
 </tr>
 </table>
 </div>
- 
- <TR><a href="/first">HomePage</a><TR>
- <BR>
- <TR><a href="/send?">SendMessage</a><TR>
- <BR>
- <TR><a href="/query?do=stock">Stock</a><TR>
- <BR>
- <TR><a href="/query?do=movie">Movie</a><TR>
-
-
 </html>

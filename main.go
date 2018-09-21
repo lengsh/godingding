@@ -43,6 +43,8 @@ func main() {
 	job2 := scheduler.Every(1).Day().At("08:01")
 	job2.Do(crawMovieJob)
 
+	job3 := scheduler.Every(1).Day().At("20:01")
+	job3.Do(crawMovieJob)
 	//scheduler.Every(1).Day().Do(crawJob)
 	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
@@ -75,11 +77,15 @@ func queryStock(w http.ResponseWriter, r *http.Request) {
 
 func queryMovie(w http.ResponseWriter, r *http.Request) {
 	qs := libs.QueryLastMovies(100)
+
 	var qms []libs.TagMovie = make([]libs.TagMovie, len(qs))
 
 	for k, rs := range qs {
 		s := ""
-		if rs.Rate > 100 {
+		if rs.Company == "IQIYI" && rs.Rate > 100 {
+			s = fmt.Sprintf("RED")
+		}
+		if rs.Company == "TX" && rs.Rate >= 9 {
 			s = fmt.Sprintf("RED")
 		}
 		qms[k] = libs.TagMovie{rs, s}
@@ -93,22 +99,18 @@ func queryMovie(w http.ResponseWriter, r *http.Request) {
 }
 
 func firstPage(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm() //解析url传递的参数，对于POST则解析响应包的主体（request body）
-	//注意:如果没有调用ParseForm方法，下面无法获取表单的数据
+	qs1 := libs.QueryTopMovies("IQIYI", 10)
+	qs2 := libs.QueryTopMovies("TX", 10)
 
-	qs := libs.QueryStock()
-	if qs != nil {
-		t, _ := template.ParseFiles("view/query.gtpl")
-		err := t.Execute(w, qs)
-		if err != nil {
-			logs.Error(fmt.Sprint(err))
-		}
-	} else {
-		t, _ := template.ParseFiles("view/first.gtpl")
-		err := t.Execute(w, nil)
-		if err != nil {
-			logs.Error(fmt.Sprint(err))
-		}
+	var qs []libs.Movie
+
+	qs = append(qs, qs1...)
+	qs = append(qs, qs2...)
+
+	t, _ := template.ParseFiles("view/first.gtpl")
+	err := t.Execute(w, qs)
+	if err != nil {
+		logs.Error(fmt.Sprint(err))
 	}
 }
 
