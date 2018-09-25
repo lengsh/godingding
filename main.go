@@ -244,7 +244,7 @@ func stockPing() {
 
 func crawMovieJob() {
 	go func() {
-		s := time.Now().Format("2006-01-02 15:04:05")
+		s := time.Now().Format("http://47.105.107.171/query?do=movie")
 		libs.CrawlMovieJob()
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendChatTextMessage(s)
