@@ -5,7 +5,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
-	//"io/ioutil"
+	//	"io/ioutil"
 	//	"os"
 	"strconv"
 	"strings"
@@ -24,9 +24,29 @@ func CrawlMovieJob() {
 	*/
 
 	r := NewCrawler()
+	defer r.ReleaseCrawler()
 	r.crawlIqiyiByChrome()
 	r.crawlTxByChrome()
-	r.ReleaseCrawler()
+
+	mvs := QueryTopMovies("IQIYI", 10)
+	for _, mv := range mvs {
+		fr := r.crawlDoubanByChrome(mv.Name)
+		if fr != mv.Douban {
+			mv.Douban = fr
+			UpdateMovie(mv)
+		}
+		time.Sleep(2000 * time.Millisecond)
+	}
+
+	mvs = QueryTopMovies("TX", 10)
+	for _, mv := range mvs {
+		fr := r.crawlDoubanByChrome(mv.Name)
+		if fr != mv.Douban {
+			mv.Douban = fr
+			UpdateMovie(mv)
+		}
+		time.Sleep(2000 * time.Millisecond)
+	}
 }
 
 type GoCrawler struct {
@@ -153,21 +173,6 @@ func (r *GoCrawler) crawlIqiyiByChrome() {
 
 func (r *GoCrawler) crawlTxByChrome() {
 	url := "http://film.qq.com/weixin/upcoming.html"
-	/*
-		service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, r.opts...)
-		if err != nil {
-			logs.Error("Error starting the ChromeDriver server:", err)
-		}
-		defer service.Stop()
-
-		// 导航到目标网站
-
-		webDriver, err := selenium.NewRemote(r.caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
-		if err != nil {
-			logs.Error("Error to NewRmote webDriver ", err)
-		}
-		defer webDriver.Quit()
-	*/
 
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
@@ -224,4 +229,74 @@ func (r *GoCrawler) crawlTxByChrome() {
 		//	fmt.Println(mo)
 		mo.NewMovie()
 	}
+}
+func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
+	url := fmt.Sprintf("https://www.douban.com/search?cat=1002&q=%s", mv)
+	/*
+		r.webDriver.AddCookie(&selenium.Cookie{
+			Name:  "defaultJumpDomain",
+			Value: "www",
+		})
+	*/
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+	}
+	//      fmt.Println(webDriver.Title())
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "search-result")
+	if err != nil {
+		logs.Error(err)
+	}
+
+	melems, err := melem.FindElements(selenium.ByClassName, "content")
+	if err != nil {
+		logs.Error(err)
+	}
+
+	var fr float32 = 0
+	for _, el := range melems {
+		sn := ""
+		elem, err := el.FindElement(selenium.ByClassName, "title")
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			s, _ := elem.Text()
+			s = strings.Replace(s, "[电影]", "", 1)
+			s = strings.TrimSpace(s)
+			sv := strings.Split(s, "\n")
+			if len(sv) > 0 {
+				sn = strings.TrimSpace(sv[0])
+			}
+			// fmt.Println(s)
+		}
+
+		elem, err = el.FindElement(selenium.ByClassName, "rating-info")
+		if err != nil {
+			fmt.Println(err)
+		} else { //rating_nums
+
+			s, _ := elem.Text()
+			sv := strings.Split(s, " ")
+
+			if len(sv) > 1 {
+
+				f, _ := strconv.ParseFloat(sv[0], 32)
+				fr = float32(f)
+
+				/*
+					ns := strings.Replace(sv[1], "(", "", -1)
+					ns = strings.Replace(ns, "人评价)", "", -1)
+					fmt.Println(ns)
+				*/
+			} else {
+			}
+		}
+		if mv == sn {
+			return fr
+		}
+		//	fmt.Println(mo)
+		//mo.NewMovie()
+	}
+	return fr
 }

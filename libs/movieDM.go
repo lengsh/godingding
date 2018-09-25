@@ -126,6 +126,16 @@ func QueryTopMovies(com string, top int) []Movie {
 	}
 }
 
+func UpdateMovie(mv Movie) {
+	o := orm.NewOrm()
+	num, err := o.Update(&mv)
+	if err != nil {
+		logs.Error(err)
+	} else {
+		logs.Debug("update num=", num)
+	}
+}
+
 func (r Movie) String() string {
 	return fmt.Sprintln("Company：", r.Company, "\nName：", r.Name, "\nRate：", r.Rate, "\nRelease Time：", r.Releasetime)
 }

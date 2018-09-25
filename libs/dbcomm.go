@@ -33,6 +33,7 @@ type Movie struct {
 	Name        string  `orm:"size(32);index"`
 	Rate        float32 `orm: "default(0)"`
 	Releasetime string  `orm:"size(32); index"`
+	Douban      float32 `orm: "default(0)"`
 }
 
 func init() {

@@ -1,7 +1,7 @@
 <html>
 <div align="center" width=450 >
 <table border="1" cellspacing="0" cellpadding="0">
-<tr> <th>ID</th><th>Name</th><th>Rate</th><th>ReleaseTime</th><th>Company</th></tr>
+<tr> <th>ID</th><th>Name</th><th>Rate</th><th>ReleaseTime</th><th>Company</th><th>Douban</th></tr>
 
 {{range .}}
 <tr><th>{{.Id}} </th><th align="left">{{.Name}} </th><th align="left">  
@@ -10,7 +10,7 @@
 {{else}}
 {{.Rate}}
 {{end}}
-</th><th>{{.Releasetime}}</th><th>{{.Company}}</th> </tr>
+</th><th>{{.Releasetime}}</th><th>{{.Company}}</th><th>{{.Douban}}</th> </tr>
 {{end}}
 
 </table>

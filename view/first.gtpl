@@ -10,7 +10,10 @@
  {{range .}}
  <tr><th align="left" width=200>{{.Name}} </th><th align="left" width=80>
  <font color="RED">{{.Rate}} </font>
- </th><th width=120>{{.Releasetime}}</th><th width=120>{{.Company}}</th> </tr>
+ </th><th width=120>{{.Releasetime}}</th><th width=120>{{.Company}}</th> 
+ </th><th width=100>
+      {{.Douban}}
+ </th> </tr>
  {{end}}
  
  </table>
