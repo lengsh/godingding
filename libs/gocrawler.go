@@ -23,17 +23,18 @@ func CrawlMovieJob() {
 		}
 	*/
 
-	r := InitHuaweiCrawler()
+	r := NewCrawler()
 	r.crawlIqiyiByChrome()
 	r.crawlTxByChrome()
+	r.ReleaseCrawler()
 }
 
-type Gocrawler struct {
-	caps selenium.Capabilities
-	opts []selenium.ServiceOption
+type GoCrawler struct {
+	service   *selenium.Service
+	webDriver selenium.WebDriver
 }
 
-func InitIOSCrawler() *Gocrawler {
+func NewCrawler() *GoCrawler {
 	// StartChrome 启动谷歌浏览器headless模式
 	opts := []selenium.ServiceOption{}
 	caps := selenium.Capabilities{
@@ -59,16 +60,25 @@ func InitIOSCrawler() *Gocrawler {
 	// 启动chromedriver，端口号可自定义
 
 	// 调起chrome浏览器
-	/*
-		webDriver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
-		if err != nil {
-			logs.Error(err)
-	} */
+	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, opts...)
+	if err != nil {
+		logs.Error("Error starting the ChromeDriver server:", err)
+	}
 
-	return &Gocrawler{caps, opts}
+	webDriver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
+	if err != nil {
+		logs.Error(err)
+	}
+
+	return &GoCrawler{service, webDriver}
 }
 
-func InitHuaweiCrawler() *Gocrawler {
+func (r *GoCrawler) ReleaseCrawler() {
+	defer r.service.Stop()
+	defer r.webDriver.Quit()
+}
+
+func InitHuaweiCrawler() *GoCrawler {
 	// StartChrome 启动谷歌浏览器headless模式
 	opts := []selenium.ServiceOption{}
 	caps := selenium.Capabilities{
@@ -94,44 +104,39 @@ func InitHuaweiCrawler() *Gocrawler {
 	// 启动chromedriver，端口号可自定义
 
 	// 调起chrome浏览器
-	/*
-		webDriver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
-		if err != nil {
-			logs.Error(err)
-	} */
 
-	return &Gocrawler{caps, opts}
-}
-
-func (r *Gocrawler) crawlIqiyiByChrome() {
-	url := "http://m.iqiyi.com/vip/timeLine.html"
-
-	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, r.opts...)
+	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, opts...)
 	if err != nil {
 		logs.Error("Error starting the ChromeDriver server:", err)
 	}
 	defer service.Stop()
 
-	webDriver, err := selenium.NewRemote(r.caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
+	webDriver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
 	if err != nil {
 		logs.Error(err)
 	}
 	defer webDriver.Quit()
 
-	webDriver.AddCookie(&selenium.Cookie{
+	return &GoCrawler{service, webDriver}
+}
+
+func (r *GoCrawler) crawlIqiyiByChrome() {
+	url := "http://m.iqiyi.com/vip/timeLine.html"
+
+	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
 		Value: "www",
 	})
 
 	// 导航到目标网站
-	err = webDriver.Get(url)
+	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 	}
 	//      fmt.Println(webDriver.Title())
 	t := time.Now()
 	fo := fmt.Sprintf("%d ", t.Year()) // , t.Month(), t.Day()-10, t.Hour()) //, t.Minute(), t.Second())
-	elem, err := webDriver.FindElement(selenium.ByClassName, "m-vip-timer-shaft")
+	elem, err := r.webDriver.FindElement(selenium.ByClassName, "m-vip-timer-shaft")
 	if err != nil {
 		logs.Error(err)
 	}
@@ -177,8 +182,8 @@ func (r *Gocrawler) crawlIqiyiByChrome() {
 			}
 			mo.Rate = float32(value)
 		}
-		fmt.Println(mo)
-		//	mo.NewMovie()
+		//	fmt.Println(mo)
+		mo.NewMovie()
 	}
 	/*
 		str, err := webDriver.PageSource()
@@ -188,35 +193,36 @@ func (r *Gocrawler) crawlIqiyiByChrome() {
 	*/
 }
 
-func (r *Gocrawler) crawlTxByChrome() {
+func (r *GoCrawler) crawlTxByChrome() {
 	url := "http://film.qq.com/weixin/upcoming.html"
+	/*
+		service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, r.opts...)
+		if err != nil {
+			logs.Error("Error starting the ChromeDriver server:", err)
+		}
+		defer service.Stop()
 
-	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, r.opts...)
-	if err != nil {
-		logs.Error("Error starting the ChromeDriver server:", err)
-	}
-	defer service.Stop()
+		// 导航到目标网站
 
-	// 导航到目标网站
+		webDriver, err := selenium.NewRemote(r.caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
+		if err != nil {
+			logs.Error("Error to NewRmote webDriver ", err)
+		}
+		defer webDriver.Quit()
+	*/
 
-	webDriver, err := selenium.NewRemote(r.caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
-	if err != nil {
-		logs.Error("Error to NewRmote webDriver ", err)
-	}
-	defer webDriver.Quit()
-
-	webDriver.AddCookie(&selenium.Cookie{
+	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
 		Value: "www",
 	})
 
-	err = webDriver.Get(url)
+	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 	}
 	//      fmt.Println(webDriver.Title())
 
-	melems, err := webDriver.FindElements(selenium.ByClassName, "film_intro")
+	melems, err := r.webDriver.FindElements(selenium.ByClassName, "film_intro")
 	if err != nil {
 		logs.Error(err)
 	}
@@ -257,7 +263,7 @@ func (r *Gocrawler) crawlTxByChrome() {
 				mo.Rate = float32(val)
 			}
 		}
-		fmt.Println(mo)
-		//		mo.NewMovie()
+		//	fmt.Println(mo)
+		mo.NewMovie()
 	}
 }

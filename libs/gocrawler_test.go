@@ -7,5 +7,5 @@ import (
 
 func TestGoCrawler(t *testing.T) {
 
-	libs.CrawlMovieJob22()
+	libs.CrawlMovieJob()
 }
