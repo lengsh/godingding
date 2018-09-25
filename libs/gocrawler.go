@@ -78,48 +78,6 @@ func (r *GoCrawler) ReleaseCrawler() {
 	defer r.webDriver.Quit()
 }
 
-func InitHuaweiCrawler() *GoCrawler {
-	// StartChrome 启动谷歌浏览器headless模式
-	opts := []selenium.ServiceOption{}
-	caps := selenium.Capabilities{
-		"browserName": "chrome",
-	}
-
-	// 禁止加载图片，加快渲染速度
-	imagCaps := map[string]interface{}{
-		"profile.managed_default_content_settings.images": 2,
-	}
-
-	chromeCaps := chrome.Capabilities{
-		Prefs: imagCaps,
-		Path:  "",
-		Args: []string{
-			"--headless", // 设置Chrome无头模式
-			"--no-sandbox",
-			//      "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0.2 Safari/604.4.7", // 模拟user-agent，防反爬
-			"--user-agent=Mozilla/5.0 (Linux; Android 8.1.0; EML-AL00 Build/HUAWEIEML-AL00) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Mobile Safari/537.36"},
-		// Mozilla/5.0 (iPhone; CPU iPhone OS 11_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1"},
-	}
-	caps.AddChrome(chromeCaps)
-	// 启动chromedriver，端口号可自定义
-
-	// 调起chrome浏览器
-
-	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, opts...)
-	if err != nil {
-		logs.Error("Error starting the ChromeDriver server:", err)
-	}
-	defer service.Stop()
-
-	webDriver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
-	if err != nil {
-		logs.Error(err)
-	}
-	defer webDriver.Quit()
-
-	return &GoCrawler{service, webDriver}
-}
-
 func (r *GoCrawler) crawlIqiyiByChrome() {
 	url := "http://m.iqiyi.com/vip/timeLine.html"
 
