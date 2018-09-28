@@ -42,6 +42,8 @@ func CrawlMovieJob() {
 	r.crawlTxByChrome()
 	r.crawlYoukuByChrome()
 
+	NewMylog("sys", "Update")
+
 	mvs := QueryTopMovies("IQIYI", 20)
 	for _, mv := range mvs {
 		fr := r.crawlDoubanByChrome(mv.Name)

@@ -17,6 +17,8 @@
 
 {{if (ge .Douban 8.0) }}
 <font color="RED">{{.Douban}} </font>
+{{else if (lt .Douban 5.0)}}
+<font color="GREEN">{{.Douban}} </font>
 {{else}}
 {{.Douban}}
 {{end}}

@@ -3,7 +3,6 @@ package libs
 import (
 	"fmt"
 	"github.com/lengsh/godingding/libs"
-	// "os"
 	"testing"
 )
 
@@ -51,33 +50,18 @@ func TestRNewMovie(t *testing.T) {
 }
 
 func TestQueryMovie(t *testing.T) {
+	/*
+		qs1 := libs.QueryTopMovies("IQIYI", 10)
+		qs2 := libs.QueryTopMovies("TX", 10)
 
-	qs1 := libs.QueryTopMovies("IQIYI", 10)
-	qs2 := libs.QueryTopMovies("TX", 10)
+		var qs []libs.Movie
 
-	var qs []libs.Movie
+		qs = append(qs, qs1...)
+		qs = append(qs, qs2...)
+	*/
 
-	qs = append(qs, qs1...)
-	qs = append(qs, qs2...)
-
-	fmt.Println(len(qs))
-
-	var qms []libs.TagMovie = make([]libs.TagMovie, len(qs))
-
-	for k, rs := range qs {
-		s := ""
-		if rs.Douban > 8 {
-			s = fmt.Sprintf("RED")
-		} else if rs.Douban < 5 {
-			s = fmt.Sprintf("GREEN")
-		}
-		qms[k] = libs.TagMovie{rs, s}
-	}
-
-	for k, v := range qms {
-		fmt.Println("key=", k)
-		fmt.Println("val=", v)
-	}
+	libs.NewMylog("sys", "Update")
+	fmt.Println(libs.GetLastLog())
 }
 
 func TestQueryTopMovie(t *testing.T) {

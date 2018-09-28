@@ -12,11 +12,6 @@ import (
 // Model Struct
 // https://beego.me/docs/mvc/model/models.md#%E6%A8%A1%E5%9E%8B%E5%AD%97%E6%AE%B5%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%AF%B9%E5%BA%94
 
-type TagMovie struct {
-	Movie
-	TagRate string
-}
-
 func (r Movie) NewMovie() int {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
@@ -180,14 +175,42 @@ func (r Movie) IfTagRate() bool {
 }
 
 func (r Movie) UpdateTime() string {
-	s := time.Now().Format("2006-01-02")
-	s = s + " 10:49 Update"
-	return s
+	return GetLastLog()
+}
+
+func NewMylog(usr string, blog string) int {
+
+	t := time.Now().UTC().Add(8 * time.Hour)
+	var r = Mylog{User: usr, Blog: blog, Modtime: t}
+	o := orm.NewOrm()
+	id, err := o.Insert(&r)
+	if err != nil {
+		logs.Error(err.Error())
+	} else {
+		logs.Info(id)
+		return int(id)
+	}
+	return 0
+}
+
+func GetLastLog() string {
+	o := orm.NewOrm()
+	var rs orm.RawSeter
+	sql := fmt.Sprintf("SELECT * FROM mylog order by modtime desc LIMIT 1")
+	logs.Debug(sql)
+	rs = o.Raw(sql)
+	var ms []Mylog
+	_, err := rs.QueryRows(&ms)
+	if err != nil {
+		logs.Error(err.Error())
+		return ""
+	} else {
+		v := ms[0].Modtime
+		return ms[0].Blog + v.Format(" 2006-01-02 15:04:05")
+	}
+	return ""
 }
 
 func (r Movie) String() string {
 	return fmt.Sprintln("Company：", r.Company, "\nName：", r.Name, "\nRate：", r.Rate, "\nRelease Time：", r.Releasetime, "\nDouban:", r.Douban)
-}
-func (r TagMovie) String() string {
-	return fmt.Sprintln("Company：", r.Company, "\nName：", r.Name, "\nRate：", r.Rate, "\nRelease Time：", r.Releasetime, "\nDouban:", r.Douban, "[", r.TagRate, "]")
 }

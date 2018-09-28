@@ -49,7 +49,7 @@ func main() {
 	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
 
-	err := http.ListenAndServe(":8080", nil) //设置监听的端口
+	err := http.ListenAndServe(":80", nil) //设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -71,7 +71,7 @@ func queryStock(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/stock.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
-		logs.Error(fmt.Sprint(err))
+		logs.Error(err.Error())
 	}
 }
 
@@ -85,19 +85,12 @@ func movieReport(w http.ResponseWriter, r *http.Request) {
 	qs = append(qs, yk...)
 	qs = append(qs, qy...)
 
-	t, _ := template.ParseFiles("view/report.gtpl")
+	t, _ := template.ParseFiles("view/report.gtpl", "view/tx.gtpl", "view/iqiyi.gtpl", "view/youku.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
-		logs.Error(fmt.Sprint(err))
+		logs.Debug(err.Error())
+		logs.Error(err.Error())
 	}
-
-	/*
-		t, _ := template.ParseFiles("view/tx.gtpl", "view/report_yk.gtpl", "view/report_iqiyi.gtpl", "view/report.gtpl")
-		err := t.Execute(w, nil)
-		if err != nil {
-			logs.Error(fmt.Sprint(err))
-		}
-	*/
 }
 
 func queryMovie(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +107,8 @@ func queryMovie(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/movie.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
-		logs.Error(fmt.Sprint(err))
+		logs.Debug(err.Error())
+		logs.Error(err.Error())
 	}
 }
 
@@ -131,7 +125,7 @@ func firstPage(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/first.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
-		logs.Error(fmt.Sprint(err))
+		logs.Error(err.Error())
 	}
 }
 
@@ -155,7 +149,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/send.gtpl")
 	err := t.Execute(w, msg)
 	if err != nil {
-		logs.Error(fmt.Sprint(err))
+		logs.Error(err.Error())
 	}
 }
 
@@ -251,7 +245,7 @@ func syscallDo(msg string) string {
 	lsOut, err := lsCmd.Output()
 	if err != nil {
 		// panic(err)
-		logs.Error(fmt.Sprintln(err))
+		logs.Error(err.Error())
 		return "No Data!"
 	} else {
 		logs.Info(string(lsOut))

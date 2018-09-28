@@ -1,7 +1,7 @@
 package libs
 
 import (
-	//	"fmt"
+	"time"
 	//	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
 	//_ "github.com/mattn/go-sqlite3"
@@ -27,6 +27,13 @@ type Stockorm struct {
 	Stock
 }
 
+type Mylog struct {
+	Id      int
+	User    string    `orm:"size(32);index"`
+	Modtime time.Time `orm:"default(Now())" `
+	Blog    string    `orm: "size(128)"`
+}
+
 type Movie struct {
 	Id          int
 	Company     string  `orm:"size(20);index"`
@@ -43,7 +50,6 @@ func init() {
 	//("mysql", "user:password@/dbname")
 	// 注册定义的 model
 
-	orm.RegisterModel(new(Movie), new(Stockorm))
+	orm.RegisterModel(new(Movie), new(Stockorm), new(Mylog))
 	orm.RunSyncdb("default", false, true)
-
 }
