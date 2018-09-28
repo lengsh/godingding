@@ -16,8 +16,8 @@
 <div align="center">
 
 <TR><a href="/first">Home</a><TR>
-<TR><a href="/send?">SendMessage</a><TR>
 <TR><a href="/query?do=stock">Stock</a><TR>
 <TR><a href="/query?do=movie">Movie</a><TR>
+<TR><a href="/query?do=report">Report</a><TR>
 </div>
 </html>

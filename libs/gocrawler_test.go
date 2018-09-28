@@ -7,5 +7,8 @@ import (
 
 func TestGoCrawler(t *testing.T) {
 
-	libs.CrawlMovieJob()
+	//libs.Test_Crawl()
+	//libs.TestUpdate()
+	//libs.CrawlMovieJob()
+	libs.UpdateDouban()
 }

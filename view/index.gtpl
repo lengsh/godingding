@@ -9,9 +9,6 @@
 <a href="/query?do=stock">Stock</a><TR>
 <br>
 <a href="/query?do=movie">Movie</a><TR>
-
-<BR>
-<TR><a href="/send?">SendMessage</a><TR>
 <BR>
 
 </div>

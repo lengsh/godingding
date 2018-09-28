@@ -126,8 +126,32 @@ func QueryTopMovies(com string, top int) []Movie {
 	}
 }
 
+func QueryZeroDouban(top int) []Movie {
+	if top > 100 {
+		logs.Error("num is too big!!")
+		return nil
+	}
+	t := time.Now()
+	fo := fmt.Sprintf("%d %02d月%02d日", t.Year(), t.Month(), t.Day())
+
+	o := orm.NewOrm()
+	var rs orm.RawSeter
+	sql := fmt.Sprintf("SELECT * FROM movie WHERE releasetime >='%s' and douban=0 LIMIT %d", fo, top)
+	logs.Debug(sql)
+	rs = o.Raw(sql)
+	var ms []Movie
+	_, err := rs.QueryRows(&ms)
+	if err != nil {
+		logs.Error(err)
+		return nil
+	} else {
+		return ms
+	}
+}
+
 func UpdateMovie(mv Movie) {
 	o := orm.NewOrm()
+	logs.Debug(mv)
 	num, err := o.Update(&mv)
 	if err != nil {
 		logs.Error(err)
@@ -136,6 +160,34 @@ func UpdateMovie(mv Movie) {
 	}
 }
 
+func (r Movie) IfTagRate() bool {
+	switch r.Company {
+	case "TX":
+		if r.Rate >= 8.0 {
+			return true
+		}
+	case "IQIYI":
+		if r.Rate >= 200.0 {
+			return true
+		}
+	case "YOUKU":
+		if r.Rate >= 7.0 {
+			return true
+		}
+	default:
+	}
+	return false
+}
+
+func (r Movie) UpdateTime() string {
+	s := time.Now().Format("2006-01-02")
+	s = s + " 10:49 Update"
+	return s
+}
+
 func (r Movie) String() string {
-	return fmt.Sprintln("Company：", r.Company, "\nName：", r.Name, "\nRate：", r.Rate, "\nRelease Time：", r.Releasetime)
+	return fmt.Sprintln("Company：", r.Company, "\nName：", r.Name, "\nRate：", r.Rate, "\nRelease Time：", r.Releasetime, "\nDouban:", r.Douban)
+}
+func (r TagMovie) String() string {
+	return fmt.Sprintln("Company：", r.Company, "\nName：", r.Name, "\nRate：", r.Rate, "\nRelease Time：", r.Releasetime, "\nDouban:", r.Douban, "[", r.TagRate, "]")
 }

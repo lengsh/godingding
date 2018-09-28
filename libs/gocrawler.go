@@ -12,23 +12,37 @@ import (
 	"time"
 )
 
-func CrawlMovieJob() {
-	/*
-		company := strings.ToUpper(com)
-		switch company {
-		case "IQIYI":
-			crawlIqiyiByChrome()
-		case "TX":
-			crawlTxByChrome()
-		}
-	*/
+func Test_Crawl() {
 
+	r := NewCrawler()
+	defer r.ReleaseCrawler()
+	r.crawlDoubanByChrome("蚁人2：黄蜂女现身")
+
+}
+func TestUpdate() {
+	r := NewCrawler()
+	defer r.ReleaseCrawler()
+	mvs := QueryTopMovies("YOUKU", 20)
+	for _, mv := range mvs {
+		fr := r.crawlDoubanByChrome(mv.Name)
+		if fr != mv.Douban {
+			mv.Douban = fr
+			UpdateMovie(mv)
+		} else {
+			logs.Debug(fr, " != ", mv.Douban, " don't update")
+		}
+		time.Sleep(2000 * time.Millisecond)
+	}
+}
+
+func CrawlMovieJob() {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
 	r.crawlIqiyiByChrome()
 	r.crawlTxByChrome()
+	r.crawlYoukuByChrome()
 
-	mvs := QueryTopMovies("IQIYI", 10)
+	mvs := QueryTopMovies("IQIYI", 20)
 	for _, mv := range mvs {
 		fr := r.crawlDoubanByChrome(mv.Name)
 		if fr != mv.Douban {
@@ -38,7 +52,7 @@ func CrawlMovieJob() {
 		time.Sleep(2000 * time.Millisecond)
 	}
 
-	mvs = QueryTopMovies("TX", 10)
+	mvs = QueryTopMovies("TX", 20)
 	for _, mv := range mvs {
 		fr := r.crawlDoubanByChrome(mv.Name)
 		if fr != mv.Douban {
@@ -46,6 +60,32 @@ func CrawlMovieJob() {
 			UpdateMovie(mv)
 		}
 		time.Sleep(2000 * time.Millisecond)
+	}
+
+	mvs = QueryTopMovies("YOUKU", 20)
+	for _, mv := range mvs {
+		fr := r.crawlDoubanByChrome(mv.Name)
+		if fr != mv.Douban {
+			mv.Douban = fr
+			UpdateMovie(mv)
+		}
+		time.Sleep(2000 * time.Millisecond)
+	}
+}
+
+func UpdateDouban() {
+	r := NewCrawler()
+	defer r.ReleaseCrawler()
+
+	mvs := QueryZeroDouban(100)
+	for _, mv := range mvs {
+		logs.Debug("craw :", mv.Name, "; length=", len(mv.Name), " ?=", len(strings.TrimSpace(mv.Name)))
+		fr := r.crawlDoubanByChrome(strings.TrimSpace(mv.Name))
+		if fr != mv.Douban {
+			mv.Douban = fr
+			UpdateMovie(mv)
+		}
+		time.Sleep(10000 * time.Millisecond)
 	}
 }
 
@@ -110,6 +150,10 @@ func (r *GoCrawler) crawlIqiyiByChrome() {
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		dingtalker := NewDingtalker()
+		dingtalker.SendRobotTextMessage(es)
+		return
 	}
 	//      fmt.Println(webDriver.Title())
 	t := time.Now()
@@ -117,11 +161,13 @@ func (r *GoCrawler) crawlIqiyiByChrome() {
 	elem, err := r.webDriver.FindElement(selenium.ByClassName, "m-vip-timer-shaft")
 	if err != nil {
 		logs.Error(err)
+		return
 	}
 
 	melems, err := elem.FindElements(selenium.ByClassName, "border-left")
 	if err != nil {
 		logs.Error(err)
+		return
 	}
 
 	for _, el := range melems {
@@ -131,7 +177,7 @@ func (r *GoCrawler) crawlIqiyiByChrome() {
 		rt := ""
 		elem, err := el.FindElement(selenium.ByClassName, "title")
 		if err != nil {
-			// fmt.Println(err)
+			logs.Debug(err)
 			rt = "wait"
 		} else {
 			s, _ := elem.Text()
@@ -141,7 +187,7 @@ func (r *GoCrawler) crawlIqiyiByChrome() {
 
 		elem, err = el.FindElement(selenium.ByClassName, "c-title")
 		if err != nil {
-			//fmt.Println(err)
+			logs.Debug(err)
 		} else {
 			s, _ := elem.Text()
 			mo.Name = strings.TrimSpace(s)
@@ -149,13 +195,13 @@ func (r *GoCrawler) crawlIqiyiByChrome() {
 
 		elem, err = el.FindElement(selenium.ByClassName, "album-history")
 		if err != nil {
-			//fmt.Println(err)
+			logs.Debug(err)
 		} else {
 			s, _ := elem.Text()
 			s = strings.Replace(s, "万人已预约", "", -1)
 			value, err := strconv.ParseFloat(s, 32)
 			if err != nil {
-				// do something sensible
+				logs.Debug(err)
 				value = 0
 			}
 			mo.Rate = float32(value)
@@ -182,6 +228,10 @@ func (r *GoCrawler) crawlTxByChrome() {
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		dingtalker := NewDingtalker()
+		dingtalker.SendRobotTextMessage(es)
+		return
 	}
 	//      fmt.Println(webDriver.Title())
 
@@ -197,7 +247,7 @@ func (r *GoCrawler) crawlTxByChrome() {
 
 		elem, err := el.FindElement(selenium.ByClassName, "tit")
 		if err != nil {
-			fmt.Println(err)
+			logs.Debug(err)
 		} else {
 			s, _ := elem.Text()
 			mo.Name = strings.TrimSpace(s)
@@ -205,7 +255,7 @@ func (r *GoCrawler) crawlTxByChrome() {
 
 		elem, err = el.FindElement(selenium.ByClassName, "misc")
 		if err != nil {
-			fmt.Println(err)
+			logs.Debug(err)
 		} else {
 			s, _ := elem.Text()
 			ts := strings.Split(s, " ")
@@ -218,7 +268,7 @@ func (r *GoCrawler) crawlTxByChrome() {
 
 		elem, err = el.FindElement(selenium.ByClassName, "score_wrap")
 		if err != nil {
-			fmt.Println(err)
+			logs.Debug(err)
 		} else {
 			s, _ := elem.Text()
 			val, err := strconv.ParseFloat(s, 32)
@@ -230,7 +280,89 @@ func (r *GoCrawler) crawlTxByChrome() {
 		mo.NewMovie()
 	}
 }
+
+func (r *GoCrawler) crawlYoukuByChrome() {
+	url := "https://vip.youku.com/vips/index.html"
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "defaultJumpDomain",
+		Value: "www",
+	})
+
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		dingtalker := NewDingtalker()
+		dingtalker.SendRobotTextMessage(es)
+		return
+	}
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "movielist-container") //swiper-container-book")
+	if err != nil {
+		logs.Error(err)
+		return
+	}
+
+	//	fmt.Println(melem.Text())
+
+	melems, err := melem.FindElements(selenium.ByTagName, "dl")
+	if err != nil {
+		logs.Error(err)
+		return
+	}
+
+	for _, el := range melems {
+		var mo Movie
+		mo.Company = "YOUKU"
+
+		elem, err := el.FindElement(selenium.ByTagName, "dt")
+		if err != nil {
+			logs.Debug(err)
+		} else {
+
+			el1, err := elem.FindElement(selenium.ByClassName, "score")
+			if err != nil {
+				logs.Debug(err)
+				mo.Rate = 0
+			} else {
+				s, _ := el1.Text()
+				val, _ := strconv.ParseFloat(s, 32)
+				mo.Rate = float32(val)
+			}
+		}
+
+		elem, err = el.FindElement(selenium.ByTagName, "dd")
+		if err != nil {
+			logs.Debug(err)
+		} else {
+
+			el1, err := elem.FindElement(selenium.ByTagName, "h3")
+			if err != nil {
+				logs.Debug(err)
+			} else {
+				mo.Name, _ = el1.Text()
+			}
+			el2, err := elem.FindElement(selenium.ByTagName, "p")
+			if err != nil {
+				logs.Debug(err)
+			} else {
+				s, _ := el2.Text()
+				s = strings.TrimSpace(s)
+				t, _ := time.Parse("2006-01-02", s)
+				if t.Year() >= time.Now().Year() {
+					mo.Releasetime = fmt.Sprintf("%d %02d月%02d日", t.Year(), t.Month(), t.Day())
+				} else {
+					mo.Releasetime = "wait"
+				}
+			}
+		}
+		//	fmt.Println(mo)
+		mo.NewMovie()
+	}
+}
+
 func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
+	mv = strings.TrimSpace(mv)
 	url := fmt.Sprintf("https://www.douban.com/search?cat=1002&q=%s", mv)
 	/*
 		r.webDriver.AddCookie(&selenium.Cookie{
@@ -241,25 +373,32 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		dingtalker := NewDingtalker()
+		dingtalker.SendRobotTextMessage(es)
+		return 0
 	}
 	//      fmt.Println(webDriver.Title())
 
 	melem, err := r.webDriver.FindElement(selenium.ByClassName, "search-result")
 	if err != nil {
 		logs.Error(err)
+		return 0
 	}
 
 	melems, err := melem.FindElements(selenium.ByClassName, "content")
 	if err != nil {
 		logs.Error(err)
+		return 0
 	}
 
 	var fr float32 = 0
 	for _, el := range melems {
+		logs.Debug(el.Text())
 		sn := ""
 		elem, err := el.FindElement(selenium.ByClassName, "title")
 		if err != nil {
-			fmt.Println(err)
+			logs.Debug(err)
 		} else {
 			s, _ := elem.Text()
 			s = strings.Replace(s, "[电影]", "", 1)
@@ -268,17 +407,17 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 			if len(sv) > 0 {
 				sn = strings.TrimSpace(sv[0])
 			}
-			// fmt.Println(s)
+			logs.Debug(s, " >>> name= ", sn)
 		}
 
 		elem, err = el.FindElement(selenium.ByClassName, "rating-info")
 		if err != nil {
-			fmt.Println(err)
+			logs.Debug(err)
 		} else { //rating_nums
 
 			s, _ := elem.Text()
 			sv := strings.Split(s, " ")
-
+			logs.Debug(s, ">>> rate =", sv)
 			if len(sv) > 1 {
 
 				f, _ := strconv.ParseFloat(sv[0], 32)
@@ -292,6 +431,7 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 			} else {
 			}
 		}
+		logs.Debug("mv=", mv, " >>> sn=", sn, "rate = ", fr)
 		if mv == sn {
 			return fr
 		}

@@ -40,7 +40,7 @@ func main() {
 	job1 := scheduler.Every(1).Day().At("07:01")
 	job1.Do(stockPing)
 
-	job2 := scheduler.Every(1).Day().At("08:01")
+	job2 := scheduler.Every(1).Day().At("10:49")
 	job2.Do(crawMovieJob)
 
 	job3 := scheduler.Every(1).Day().At("20:01")
@@ -49,7 +49,7 @@ func main() {
 	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
 
-	err := http.ListenAndServe(":80", nil) //设置监听的端口
+	err := http.ListenAndServe(":8080", nil) //设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -75,24 +75,44 @@ func queryStock(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func queryMovie(w http.ResponseWriter, r *http.Request) {
-	qs := libs.QueryLastMovies(100)
+func movieReport(w http.ResponseWriter, r *http.Request) {
+	tx := libs.QueryTopMovies("TX", 100)
+	yk := libs.QueryTopMovies("YOUKU", 100)
+	qy := libs.QueryTopMovies("IQIYI", 100)
 
-	var qms []libs.TagMovie = make([]libs.TagMovie, len(qs))
+	var qs []libs.Movie
+	qs = append(qs, tx...)
+	qs = append(qs, yk...)
+	qs = append(qs, qy...)
 
-	for k, rs := range qs {
-		s := ""
-		if rs.Company == "IQIYI" && rs.Rate > 100 {
-			s = fmt.Sprintf("RED")
-		}
-		if rs.Company == "TX" && rs.Rate >= 9 {
-			s = fmt.Sprintf("RED")
-		}
-		qms[k] = libs.TagMovie{rs, s}
+	t, _ := template.ParseFiles("view/report.gtpl")
+	err := t.Execute(w, qs)
+	if err != nil {
+		logs.Error(fmt.Sprint(err))
 	}
 
+	/*
+		t, _ := template.ParseFiles("view/tx.gtpl", "view/report_yk.gtpl", "view/report_iqiyi.gtpl", "view/report.gtpl")
+		err := t.Execute(w, nil)
+		if err != nil {
+			logs.Error(fmt.Sprint(err))
+		}
+	*/
+}
+
+func queryMovie(w http.ResponseWriter, r *http.Request) {
+
+	tx := libs.QueryTopMovies("TX", 100)
+	yk := libs.QueryTopMovies("YOUKU", 100)
+	qy := libs.QueryTopMovies("IQIYI", 100)
+
+	var qs []libs.Movie
+	qs = append(qs, tx...)
+	qs = append(qs, yk...)
+	qs = append(qs, qy...)
+
 	t, _ := template.ParseFiles("view/movie.gtpl")
-	err := t.Execute(w, qms)
+	err := t.Execute(w, qs)
 	if err != nil {
 		logs.Error(fmt.Sprint(err))
 	}
@@ -101,11 +121,12 @@ func queryMovie(w http.ResponseWriter, r *http.Request) {
 func firstPage(w http.ResponseWriter, r *http.Request) {
 	qs1 := libs.QueryTopMovies("IQIYI", 10)
 	qs2 := libs.QueryTopMovies("TX", 10)
-
+	qs3 := libs.QueryTopMovies("YOUKU", 10)
 	var qs []libs.Movie
 
 	qs = append(qs, qs1...)
 	qs = append(qs, qs2...)
+	qs = append(qs, qs3...)
 
 	t, _ := template.ParseFiles("view/first.gtpl")
 	err := t.Execute(w, qs)
@@ -148,10 +169,14 @@ func query(w http.ResponseWriter, r *http.Request) {
 				key = 1
 			} else if m[0] == "movie" {
 				key = 2
+			} else if m[0] == "report" {
+				key = 3
 			}
 		}
 	}
 	switch key {
+	case 3:
+		movieReport(w, r)
 	case 2:
 		queryMovie(w, r)
 	case 1:
@@ -244,7 +269,7 @@ func stockPing() {
 
 func crawMovieJob() {
 	go func() {
-		s := time.Now().Format("http://47.105.107.171/query?do=movie")
+		s := "http://47.105.107.171/query?do=movie"
 		libs.CrawlMovieJob()
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendChatTextMessage(s)
