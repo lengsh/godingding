@@ -263,9 +263,8 @@ func stockPing() {
 
 func crawMovieJob() {
 	go func() {
-		s := "http://47.105.107.171/query?do=movie"
 		libs.CrawlMovieJob()
 		dingtalker := libs.NewDingtalker()
-		dingtalker.SendChatTextMessage(s)
+		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报[Update]")
 	}()
 }
