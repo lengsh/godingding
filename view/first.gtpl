@@ -1,7 +1,8 @@
 <html>
-<br><br><BR>
 <div align="center">
-<image src="https://is.golangtc.com/logo/golangtc.png?height=160" />
+<image src="http://47.105.107.171:8080/hai.jpg"  height="120" />
+<image src="http://47.105.107.171:8080/he.jpg"  height="120" />
+<image src="http://47.105.107.171:8080/anmen.jpg"  height="120" />
 </div>
 <BR>
 <div align=center>

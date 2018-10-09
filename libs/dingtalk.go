@@ -39,13 +39,13 @@ func (r *Dingtalker) SendChatTextMessage(msg string) {
 	}
 }
 
-func (r *Dingtalker) SendChatLinkMessage(url string, title string, text string) {
+func (r *Dingtalker) SendChatLinkMessage(url string, img string, title string, text string) {
 	logs.Debug("corpSecret=", r.CorpSecret, "\ncorpId=", r.CorpId, "\nchatId=", r.ChatId)
 	c := godingtalk.NewDingTalkClient(r.CorpId, r.CorpSecret)
 	c.RefreshAccessToken()
 	logs.Debug("AccessToken = ", c.AccessToken)
 
-	err := c.SendLinkMessage("YY", r.ChatId, "mediaID", url, title, text)
+	err := c.SendLinkMessage("YY", r.ChatId, img, url, title, text)
 	//"http://47.105.107.171/query?do=report", "3大视频网站Comingsoon", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报[Update]")
 	if err != nil {
 		logs.Error(err)

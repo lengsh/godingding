@@ -95,9 +95,9 @@ func movieReport(w http.ResponseWriter, r *http.Request) {
 
 func queryMovie(w http.ResponseWriter, r *http.Request) {
 
-	tx := libs.QueryTopMovies("TX", 100)
-	yk := libs.QueryTopMovies("YOUKU", 100)
-	qy := libs.QueryTopMovies("IQIYI", 100)
+	tx := libs.QueryXMovies("TX", 100)
+	yk := libs.QueryXMovies("YOUKU", 100)
+	qy := libs.QueryXMovies("IQIYI", 100)
 
 	var qs []libs.Movie
 	qs = append(qs, tx...)
@@ -255,6 +255,11 @@ func syscallDo(msg string) string {
 
 func stockPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
+	t := time.Now()
+	if t.Weekday() == time.Sunday || t.Weekday() == time.Saturday {
+		return
+	}
+
 	sk := "BABA"
 	s := pluginDo(sk)
 	dingtalker := libs.NewDingtalker()
@@ -265,6 +270,6 @@ func crawMovieJob() {
 	go func() {
 		libs.CrawlMovieJob()
 		dingtalker := libs.NewDingtalker()
-		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报[Update]")
+		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "http://47.105.107.171:8080/sun.png", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报!")
 	}()
 }

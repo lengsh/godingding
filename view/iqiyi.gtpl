@@ -1,6 +1,7 @@
 {{define "iqiyi"}}
 <div align="center" class="iqiyi" >
 <h3>爱奇艺</h3>
+<a href="http://m.iqiyi.com/vip/timeLine.html"> http://m.iqiyi.com/vip/timeLine.html -- 即将上线(移动浏览器) </a>
 <table border="1" cellspacing="0" cellpadding="0" width=720>
 <tr> <th>ID</th><th>Name</th><th>订阅人数</th><th>ReleaseTime</th><th>豆瓣分数</th></tr>
 {{range .}}
