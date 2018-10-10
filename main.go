@@ -49,7 +49,7 @@ func main() {
 	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
 
-	err := http.ListenAndServe(":80", nil) //设置监听的端口
+	err := http.ListenAndServe(":8081", nil) //设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -222,12 +222,13 @@ func help(w http.ResponseWriter, r *http.Request) {
 
 */
 func pluginDo(msg string) string {
-
-	so := libs.Plugins{"./so/stockplugin.so"}
-	sTime := so.Crawler_Stock(msg)
-	logs.Info("Stock Time = ", sTime)
-	st := libs.Crawler_Futu(msg, sTime)
-	st.NewStock()
+	/*
+		so := libs.Plugins{"./so/stockplugin.so"}
+		sTime := so.Crawler_Stock(msg)
+		logs.Info("Stock Time = ", sTime)
+	*/
+	st := libs.Crawler_Futu(msg)
+	//st.NewStock()
 	return st.String()
 }
 
@@ -260,16 +261,19 @@ func stockPing() {
 		return
 	}
 
-	sk := "BABA"
-	s := pluginDo(sk)
+	go func() {
+		libs.CrawlStocksJob()
+	}()
+	time.Sleep(20000 * time.Millisecond)
+	s, _ := libs.LastStock("baba")
 	dingtalker := libs.NewDingtalker()
-	dingtalker.SendRobotTextMessage(s)
+	dingtalker.SendChatTextMessage(s.String())
 }
 
 func crawMovieJob() {
 	go func() {
 		libs.CrawlMovieJob()
 		dingtalker := libs.NewDingtalker()
-		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "http://47.105.107.171:8080/sun.png", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报!")
+		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "http://47.105.107.171/sun.png", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报!")
 	}()
 }

@@ -63,11 +63,7 @@ func Crawler_163(st string) string {
 	return sm
 }
 
-func Crawler_Futu(st string, dt string) Stock {
-	if len(dt) < 10 {
-		dt = time.Now().Format("2006-01-02 15:04:05")
-		logs.Error("datetime Error ,reset current datetime = ", dt)
-	}
+func Crawler_Futu(st string) Stock {
 	stk := strings.ToUpper(st)
 	surl := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", stk)
 
@@ -146,13 +142,13 @@ func Crawler_Futu(st string, dt string) Stock {
 	idx1 = strings.Index(s3, "万")
 	sJL := s3[:idx1]
 
-	fEnd, err := strconv.ParseFloat(sCur, 64)
-	fStart, err := strconv.ParseFloat(sKai, 64)
-	fTradeFounds, err := strconv.ParseFloat(sJE, 64)
-	fTradeStock, err := strconv.ParseFloat(sJL, 64)
-	fHigh, err := strconv.ParseFloat(sGao, 64)
-	fLow, err := strconv.ParseFloat(sDi, 64)
-	logs.Debug("KAI:", sKai, "; SHOU:", sCur, ";GAO:", sGao, ";DI:", sDi, ";LANG:", sJL, ";E:", sJE, ";TIME:", dt)
-	return Stock{stk, fHigh, fLow, fStart, fEnd, fTradeStock, fTradeFounds, dt}
+	fEnd, err := strconv.ParseFloat(sCur, 32)
+	fStart, err := strconv.ParseFloat(sKai, 32)
+	fTradeFounds, err := strconv.ParseFloat(sJE, 32)
+	fTradeStock, err := strconv.ParseFloat(sJL, 32)
+	fHigh, err := strconv.ParseFloat(sGao, 32)
+	fLow, err := strconv.ParseFloat(sDi, 32)
+	logs.Debug("KAI:", sKai, "; SHOU:", sCur, ";GAO:", sGao, ";DI:", sDi, ";LANG:", sJL, ";E:", sJE)
+	return Stock{stk, float32(fHigh), float32(fLow), float32(fStart), float32(fEnd), float32(fTradeStock), float32(fTradeFounds), 0, time.Now()}
 	//	fmt.Sprintln("最高价：", sGao, "\n最低价：", sDi, "\n开盘价：", sKai, "\n当前价：", sCur, "\n成交额：", sJE, "\n成交量：", sJL)
 }

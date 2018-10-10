@@ -5,7 +5,7 @@
 
 <form action="login?"  >
 {{range .}}
-<tr><th>{{.Id}} </th><th>{{.Name}} </th><th> {{.HighPrice}} </th><th>{{.LowPrice}}</th><th>{{.StartPrice}}</th><th>{{.EndPrice}}</th><th>{{.TradeFounds}}</th><th>{{.TradeStock}}</th><th>{{.TradeDate}}</th> </tr>
+<tr><th>{{.Id}} </th><th>{{.Name}} </th><th> {{.HighPrice}} </th><th>{{.LowPrice}}</th><th>{{.StartPrice}}</th><th>{{.EndPrice}}</th><th>{{.TradeFounds}}</th><th>{{.TradeStock}}</th><th>{{.CreateDate}}</th> </tr>
 {{end}}
 
 </table>
@@ -15,7 +15,7 @@
 <BR>
 <div align="center">
 
-<TR><a href="/first">Home</a><TR>
+<TR><a href="/movie/first">Home</a><TR>
 <TR><a href="/query?do=stock">Stock</a><TR>
 <TR><a href="/query?do=movie">Movie</a><TR>
 <TR><a href="/query?do=report">Report</a><TR>

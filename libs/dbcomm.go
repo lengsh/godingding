@@ -12,14 +12,15 @@ import (
 // https://beego.me/docs/mvc/model/models.md#%E6%A8%A1%E5%9E%8B%E5%AD%97%E6%AE%B5%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%AF%B9%E5%BA%94
 
 type Stock struct {
-	Name        string  `orm:"size(20); index"`
-	HighPrice   float64 `orm: "default(0)"`
-	LowPrice    float64
-	StartPrice  float64
-	EndPrice    float64
-	TradeStock  float64
-	TradeFounds float64
-	TradeDate   string `orm:"size(32); index"`
+	Name        string    `orm:"size(20); index"`
+	HighPrice   float32   `orm: "default(0)"`
+	LowPrice    float32   `orm: "default(0)"`
+	StartPrice  float32   `orm: "default(0)"`
+	EndPrice    float32   `orm: "default(0)"`
+	TradeStock  float32   `orm: "default(0)"`
+	TradeFounds float32   `orm: "default(0)"`
+	MarketCap   float32   `orm: "default(0)"`
+	CreateDate  time.Time `orm:"auto_now_add;type(date); index"`
 }
 
 type Stockorm struct {
@@ -30,7 +31,7 @@ type Stockorm struct {
 type Mylog struct {
 	Id      int
 	User    string    `orm:"size(32);index"`
-	Modtime time.Time `orm:"default(Now())" `
+	Modtime time.Time `orm:" default(Now())" `
 	Blog    string    `orm: "size(128)"`
 }
 

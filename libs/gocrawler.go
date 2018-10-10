@@ -12,13 +12,6 @@ import (
 	"time"
 )
 
-func Test_Crawl() {
-
-	r := NewCrawler()
-	defer r.ReleaseCrawler()
-	r.crawlDoubanByChrome("蚁人2：黄蜂女现身")
-
-}
 func TestUpdate() {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
@@ -32,6 +25,17 @@ func TestUpdate() {
 			logs.Debug(fr, " != ", mv.Douban, " don't update")
 		}
 		time.Sleep(2000 * time.Millisecond)
+	}
+}
+
+func CrawlStocksJob() {
+	r := NewCrawler()
+	defer r.ReleaseCrawler()
+	stocks := map[int]string{0: "baba", 1: "fb", 2: "MSFT", 3: "AMZN", 4: "AAPL", 5: "TSLA", 6: "BIDU", 7: "NVDA", 8: "googl", 9: "wb"}
+
+	for _, v := range stocks {
+		r.crawlStockByChrome(v)
+		time.Sleep(10000 * time.Millisecond)
 	}
 }
 
@@ -437,8 +441,115 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 		if mv == sn {
 			return fr
 		}
-		//	fmt.Println(mo)
-		//mo.NewMovie()
 	}
 	return fr
+}
+
+//////////
+
+func (r *GoCrawler) crawlStockByChrome(sID string) {
+	mv := strings.ToUpper(strings.TrimSpace(sID))
+	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
+	/*
+		r.webDriver.AddCookie(&selenium.Cookie{
+					Name:  "defaultJumpDomain",
+					Value: "www",
+		})
+	*/
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		dingtalker := NewDingtalker()
+		dingtalker.SendRobotTextMessage(es)
+		fmt.Println("error?")
+		return
+	}
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "listBar")
+	if err != nil {
+		logs.Error(err)
+		fmt.Println("error?")
+		return
+	}
+
+	var mo Stockorm
+	mo.Name = mv
+	sbuf, err := melem.Text()
+	if err == nil {
+		sv := strings.Split(sbuf, "\n")
+		if len(sv) == 10 {
+			s := sv[0]
+			sbv := strings.Split(s, "：")
+			if len(sbv) != 2 {
+				return
+			}
+			f, _ := strconv.ParseFloat(sbv[1], 32)
+			mo.HighPrice = float32(f)
+
+			s = sv[1]
+			sbv = strings.Split(s, "：")
+			if len(sbv) != 2 {
+				return
+			}
+			f, _ = strconv.ParseFloat(sbv[1], 32)
+			mo.LowPrice = float32(f)
+
+			s = sv[2]
+			sbv = strings.Split(s, "：")
+			if len(sbv) != 2 {
+				return
+			}
+			f, _ = strconv.ParseFloat(sbv[1], 32)
+			mo.StartPrice = float32(f)
+
+			s = sv[3]
+			sbv = strings.Split(s, "：")
+			if len(sbv) != 2 {
+				return
+			}
+			f, _ = strconv.ParseFloat(sbv[1], 32)
+			mo.EndPrice = float32(f)
+
+			s = sv[4]
+			sbv = strings.Split(s, "：")
+			if len(sbv) != 2 {
+				return
+			}
+			s = strings.Replace(sbv[1], "万", "", -1)
+			s = strings.Replace(s, "亿", "", -1)
+			f, _ = strconv.ParseFloat(s, 32)
+			mo.TradeFounds = float32(f)
+
+			s = sv[5]
+			sbv = strings.Split(s, "：")
+			if len(sbv) != 2 {
+				return
+			}
+			s = strings.Replace(sbv[1], "万", "", -1)
+			s = strings.Replace(s, "亿", "", -1)
+			f, _ = strconv.ParseFloat(s, 32)
+			mo.TradeStock = float32(f)
+
+			s = sv[7]
+			sbv = strings.Split(s, "：")
+			if len(sbv) != 2 {
+				return
+			}
+			s = strings.Replace(sbv[1], "万", "", -1)
+			s = strings.Replace(s, "亿", "", -1)
+			f, _ = strconv.ParseFloat(s, 32)
+			mo.MarketCap = float32(f)
+			mo.CreateDate = time.Now()
+
+			/////////
+			///////////
+			mo.NewStock()
+			////////////////////////
+			//	fmt.Println(mo)
+
+		} else {
+			logs.Error("Error to parser")
+			fmt.Println("error ??")
+		}
+	}
 }

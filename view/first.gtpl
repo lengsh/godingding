@@ -1,8 +1,8 @@
 <html>
 <div align="center">
-<image src="http://47.105.107.171:8080/hai.jpg"  height="120" />
-<image src="http://47.105.107.171:8080/he.jpg"  height="120" />
-<image src="http://47.105.107.171:8080/anmen.jpg"  height="120" />
+<image src="http://47.105.107.171/img/hai.jpg"  height="120" />
+<image src="http://47.105.107.171/img/he.jpg"  height="120" />
+<image src="http://47.105.107.171/img/anmen.jpg"  height="120" />
 </div>
 <BR>
 <div align=center>
@@ -33,9 +33,9 @@
 
 <BR>
 <div align="center" width=300>
-<TR><a href="/query?do=stock">Stock</a>&nbsp;&nbsp;&nbsp;<TR>
-<TR><a href="/query?do=report">Report</a>&nbsp;&nbsp;&nbsp;<TR>
-<TR><a href="/query?do=movie">Movie</a><TR>
+<TR><a href="/movie/query?do=stock">Stock</a>&nbsp;&nbsp;&nbsp;<TR>
+<TR><a href="/movie/query?do=report">Report</a>&nbsp;&nbsp;&nbsp;<TR>
+<TR><a href="/movie/query?do=movie">Movie</a><TR>
 </div>
 
 </html>
