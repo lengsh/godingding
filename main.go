@@ -34,6 +34,7 @@ func main() {
 	http.HandleFunc("/", firstPage)  //设置访问的路由
 	http.HandleFunc("/send", send)   //设置访问的路由
 	http.HandleFunc("/query", query) //设置访问的路由
+	http.HandleFunc("/stock", stock) //设置访问的路由
 	http.HandleFunc("/help", help)   //设置访问的路由
 
 	scheduler := gocron.NewScheduler()
@@ -67,7 +68,7 @@ func scrumbCreater(s string) string {
 }
 
 func queryStock(w http.ResponseWriter, r *http.Request) {
-	qs := libs.QueryStock()
+	qs := libs.QueryStock(10)
 	t, _ := template.ParseFiles("view/stock.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
@@ -178,6 +179,32 @@ func query(w http.ResponseWriter, r *http.Request) {
 	default:
 		t, _ := template.ParseFiles("view/index.gtpl")
 		t.Execute(w, nil)
+	}
+}
+
+func stock(w http.ResponseWriter, r *http.Request) {
+	key := "baba"
+	if r.Method == "GET" {
+		r.ParseForm()
+		if m, ok := r.Form["do"]; ok {
+			key = m[0]
+			sk := libs.QueryOneStock(key, 0, 100)
+			t, _ := template.ParseFiles("view/onestock.gtpl")
+			err := t.Execute(w, sk)
+			if err != nil {
+				logs.Error(err.Error())
+			}
+		} else {
+			tn := time.Now().UTC().Add(8 * time.Hour)
+			tt := tn.Add(-100 * 24 * time.Hour)
+			s := fmt.Sprintf("%d-%2d-%2d", tt.Year(), tt.Month(), tt.Day())
+			sk := libs.QueryMarketCaps(s)
+			t, _ := template.ParseFiles("view/stocksum.gtpl")
+			err := t.Execute(w, sk)
+			if err != nil {
+				logs.Error(err.Error())
+			}
+		}
 	}
 }
 

@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"github.com/lengsh/godingding/libs"
 	"testing"
-	"time"
+	//	"time"
 )
 
-func init() {
-}
-
+/*
 func TestNewStock(t *testing.T) {
 	stock := libs.Stock{Name: "BABA", HighPrice: 20, LowPrice: 10, StartPrice: 11, EndPrice: 15, TradeFounds: 120, TradeStock: 200.12, CreateDate: time.Now()}
 	n := stock.NewStock()
@@ -20,6 +18,7 @@ func TestNewStock(t *testing.T) {
 	}
 }
 
+
 func TestQueryStock(t *testing.T) {
 	qs := libs.QueryStock()
 	if qs != nil {
@@ -28,5 +27,12 @@ func TestQueryStock(t *testing.T) {
 			fmt.Printf(s.String())
 		}
 	}
+
+}
+*/
+
+func TestQueryMarketSum(t *testing.T) {
+	qs := libs.QueryMarketCap("2018-10-11")
+	fmt.Println("sum = ", qs)
 
 }
