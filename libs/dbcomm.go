@@ -1,6 +1,7 @@
 package libs
 
 import (
+	"fmt"
 	"time"
 	//	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
@@ -46,6 +47,7 @@ type Movie struct {
 
 func init() {
 	// 设置默认数据库
+	fmt.Println("=========== init db  =============")
 	orm.RegisterDriver("mysql", orm.DRMySQL)
 	orm.RegisterDataBase("default", "mysql", "lengsh:hsgnel@/youku?charset=utf8")
 	//("mysql", "user:password@/dbname")

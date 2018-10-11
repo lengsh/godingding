@@ -1,6 +1,7 @@
 package libs
 
 import (
+	"errors"
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
@@ -67,7 +68,11 @@ func LastStock(stock string) (Stockorm, error) {
 		logs.Error(err)
 		return Stockorm{}, err
 	} else {
-		return stocks[0], nil
+		if len(stocks) == 1 {
+			return stocks[0], nil
+		} else {
+			return Stockorm{}, errors.New("no data")
+		}
 	}
 }
 

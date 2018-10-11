@@ -31,9 +31,10 @@ func TestUpdate() {
 func CrawlStocksJob() {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
-	stocks := map[int]string{0: "baba", 1: "fb", 2: "MSFT", 3: "AMZN", 4: "AAPL", 5: "TSLA", 6: "BIDU", 7: "NVDA", 8: "googl", 9: "wb"}
+	stocks := "baba,fb,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,googl,wb"
+	stocksv := strings.Split(stocks, ",")
 
-	for _, v := range stocks {
+	for _, v := range stocksv {
 		r.crawlStockByChrome(v)
 		time.Sleep(10000 * time.Millisecond)
 	}
@@ -448,6 +449,7 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 //////////
 
 func (r *GoCrawler) crawlStockByChrome(sID string) {
+	logs.Debug("try to crawl ", sID)
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
 	/*

@@ -3,16 +3,15 @@ package libs
 import (
 	"fmt"
 	"github.com/lengsh/godingding/libs"
-	// "os"
 	"testing"
+	"time"
 )
 
 func init() {
 }
 
 func TestNewStock(t *testing.T) {
-	st := "2018-09-05 19:25:32"
-	stock := libs.Stock{Name: "BABA", HighPrice: 20, LowPrice: 10, StartPrice: 11, EndPrice: 15, TradeFounds: 120, TradeStock: 200.12, TradeDate: st}
+	stock := libs.Stock{Name: "BABA", HighPrice: 20, LowPrice: 10, StartPrice: 11, EndPrice: 15, TradeFounds: 120, TradeStock: 200.12, CreateDate: time.Now()}
 	n := stock.NewStock()
 	if n == 1 {
 		fmt.Println("Yes")

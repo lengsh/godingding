@@ -8,8 +8,18 @@ import (
 
 func TestStock_webdriver(t *testing.T) {
 	//	libs.CrawlStocksJob()
-	s, _ := libs.LastStock("baba")
-	fmt.Println(s)
+
+	libs.CrawlStocksJob()
+
+	s, er := libs.LastStock("baba")
+	if er != nil {
+		fmt.Println(er)
+	} else {
+		fmt.Println(s)
+		dingtalker := libs.NewDingtalker()
+		dingtalker.SendChatTextMessage(s.String())
+	}
+
 }
 
 /*
