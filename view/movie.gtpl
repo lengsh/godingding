@@ -1,4 +1,4 @@
-<html>
+{{ template "header" . }}
 <div align="center" width=450 >
 <table border="1" cellspacing="0" cellpadding="0">
 <tr> <th>ID</th><th>Name</th><th>Rate</th><th>ReleaseTime</th><th>Company</th><th>Douban</th></tr>
@@ -28,11 +28,5 @@
 {{end}}
 </table>
 </div>
-<BR><BR>
-<div align="center">
-<TR><a href="/movie/first">Home</a><TR>
-<TR><a href="/movie/query?do=stock">Stock</a><TR>
-<TR><a href="/movie/query?do=movie">Movie</a><TR>
-<TR><a href="/movie/query?do=report">Report</a><TR>
-</div>
-</html>
+
+{{ template "footer" . }}

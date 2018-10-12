@@ -1,11 +1,4 @@
-<html>
-<BR>
-<div align=center> 
- <TR><a href="/first">HomePage</a><TR>
-<TR> <TR><a href="/send?">SendMessage</a><TR>
-<TR> <TR><a href="/query?do=stock">Stock</a><TR>
-<TR> <TR><a href="/query?do=movie">Movie</a><TR>
-</div>
+{{ template "header" .}}
 <BR><BR>
 <div align="center">
 <table border="0">
@@ -23,4 +16,5 @@
 </tr>
 </table>
 </div>
-</html>
+
+{{ template "footer" .}}

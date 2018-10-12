@@ -139,6 +139,12 @@ func LastStock(stock string) (Stockorm, error) {
 	}
 }
 
+func (r Stock) TString() string {
+	return fmt.Sprintf("%d-%02d-%02d", r.CreateDate.Year(), r.CreateDate.Month(), r.CreateDate.Day())
+}
+func (r StockSum) TString() string {
+	return fmt.Sprintf("%d-%02d-%02d", r.Date.Year(), r.Date.Month(), r.Date.Day())
+}
 func (r Stock) String() string {
 	t := fmt.Sprintf("%d年%02d月%02d日", r.CreateDate.Year(), r.CreateDate.Month(), r.CreateDate.Day())
 	return fmt.Sprintln("代码：", r.Name, "\n时间：", t, "\n最高价：", r.HighPrice, "\n最低价：", r.LowPrice, "\n开盘价：", r.StartPrice, "\n当前价：", r.EndPrice, "\n成交额：", r.TradeFounds, "亿\n成交量：", r.TradeStock, "万\n市值：", r.MarketCap, "亿")

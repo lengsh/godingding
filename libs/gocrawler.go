@@ -31,13 +31,19 @@ func TestUpdate() {
 func CrawlStocksJob() {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
-	stocks := "baba,fb,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,googl,wb"
+	stocks := "BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB"
 	stocksv := strings.Split(stocks, ",")
 
 	for _, v := range stocksv {
 		r.crawlStockByChrome(v)
 		time.Sleep(10000 * time.Millisecond)
 	}
+}
+
+func CrawlStockJob(sk string) string {
+	r := NewCrawler()
+	defer r.ReleaseCrawler()
+	return r.crawlStockByChrome(sk)
 }
 
 func CrawlMovieJob() {
@@ -448,7 +454,7 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 
 //////////
 
-func (r *GoCrawler) crawlStockByChrome(sID string) {
+func (r *GoCrawler) crawlStockByChrome(sID string) string {
 	logs.Debug("try to crawl ", sID)
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
@@ -465,25 +471,25 @@ func (r *GoCrawler) crawlStockByChrome(sID string) {
 		dingtalker := NewDingtalker()
 		dingtalker.SendRobotTextMessage(es)
 		fmt.Println("error?")
-		return
+		return "error"
 	}
-	melem, err := r.webDriver.FindElement(selenium.ByClassName, "listBar")
-	if err != nil {
-		logs.Error(err)
+	melem, err1 := r.webDriver.FindElement(selenium.ByClassName, "listBar")
+	if err1 != nil {
+		logs.Error(err1)
 		fmt.Println("error?")
-		return
+		return "error"
 	}
 
 	var mo Stockorm
 	mo.Name = mv
-	sbuf, err := melem.Text()
-	if err == nil {
+	sbuf, err2 := melem.Text()
+	if err2 == nil {
 		sv := strings.Split(sbuf, "\n")
 		if len(sv) == 10 {
 			s := sv[0]
 			sbv := strings.Split(s, "：")
 			if len(sbv) != 2 {
-				return
+				goto RETURN
 			}
 			f, _ := strconv.ParseFloat(sbv[1], 32)
 			mo.HighPrice = float32(f)
@@ -491,7 +497,7 @@ func (r *GoCrawler) crawlStockByChrome(sID string) {
 			s = sv[1]
 			sbv = strings.Split(s, "：")
 			if len(sbv) != 2 {
-				return
+				goto RETURN
 			}
 			f, _ = strconv.ParseFloat(sbv[1], 32)
 			mo.LowPrice = float32(f)
@@ -499,7 +505,7 @@ func (r *GoCrawler) crawlStockByChrome(sID string) {
 			s = sv[2]
 			sbv = strings.Split(s, "：")
 			if len(sbv) != 2 {
-				return
+				goto RETURN
 			}
 			f, _ = strconv.ParseFloat(sbv[1], 32)
 			mo.StartPrice = float32(f)
@@ -507,7 +513,7 @@ func (r *GoCrawler) crawlStockByChrome(sID string) {
 			s = sv[3]
 			sbv = strings.Split(s, "：")
 			if len(sbv) != 2 {
-				return
+				goto RETURN
 			}
 			f, _ = strconv.ParseFloat(sbv[1], 32)
 			mo.EndPrice = float32(f)
@@ -515,7 +521,7 @@ func (r *GoCrawler) crawlStockByChrome(sID string) {
 			s = sv[4]
 			sbv = strings.Split(s, "：")
 			if len(sbv) != 2 {
-				return
+				goto RETURN
 			}
 			s = strings.Replace(sbv[1], "万", "", -1)
 			s = strings.Replace(s, "亿", "", -1)
@@ -525,7 +531,7 @@ func (r *GoCrawler) crawlStockByChrome(sID string) {
 			s = sv[5]
 			sbv = strings.Split(s, "：")
 			if len(sbv) != 2 {
-				return
+				goto RETURN
 			}
 			s = strings.Replace(sbv[1], "万", "", -1)
 			s = strings.Replace(s, "亿", "", -1)
@@ -535,23 +541,28 @@ func (r *GoCrawler) crawlStockByChrome(sID string) {
 			s = sv[7]
 			sbv = strings.Split(s, "：")
 			if len(sbv) != 2 {
-				return
+				goto RETURN
 			}
 			s = strings.Replace(sbv[1], "万", "", -1)
 			s = strings.Replace(s, "亿", "", -1)
 			f, _ = strconv.ParseFloat(s, 32)
 			mo.MarketCap = float32(f)
-			mo.CreateDate = time.Now()
-
+			mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
 			/////////
 			///////////
 			mo.NewStock()
-			////////////////////////
+			return mo.String()
 			//	fmt.Println(mo)
 
 		} else {
 			logs.Error("Error to parser")
 			fmt.Println("error ??")
 		}
+	} else {
+		logs.Error(err2, " Error to parser")
+		fmt.Println("error ??")
 	}
+RETURN:
+	logs.Error("something wrong with ", sID)
+	return "error"
 }

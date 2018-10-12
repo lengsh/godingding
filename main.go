@@ -69,7 +69,7 @@ func scrumbCreater(s string) string {
 
 func queryStock(w http.ResponseWriter, r *http.Request) {
 	qs := libs.QueryStock(10)
-	t, _ := template.ParseFiles("view/stock.gtpl")
+	t, _ := template.ParseFiles("view/stock.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
 		logs.Error(err.Error())
@@ -105,7 +105,7 @@ func queryMovie(w http.ResponseWriter, r *http.Request) {
 	qs = append(qs, yk...)
 	qs = append(qs, qy...)
 
-	t, _ := template.ParseFiles("view/movie.gtpl")
+	t, _ := template.ParseFiles("view/movie.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
 		logs.Debug(err.Error())
@@ -114,6 +114,7 @@ func queryMovie(w http.ResponseWriter, r *http.Request) {
 }
 
 func firstPage(w http.ResponseWriter, r *http.Request) {
+
 	qs1 := libs.QueryTopMovies("IQIYI", 10)
 	qs2 := libs.QueryTopMovies("TX", 10)
 	qs3 := libs.QueryTopMovies("YOUKU", 10)
@@ -123,7 +124,7 @@ func firstPage(w http.ResponseWriter, r *http.Request) {
 	qs = append(qs, qs2...)
 	qs = append(qs, qs3...)
 
-	t, _ := template.ParseFiles("view/first.gtpl")
+	t, _ := template.ParseFiles("view/first.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
 		logs.Error(err.Error())
@@ -147,7 +148,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 	}
 	scr := scrumbCreater("send")
 	var msg Msg = Msg{"", scr}
-	t, _ := template.ParseFiles("view/send.gtpl")
+	t, _ := template.ParseFiles("view/send.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, msg)
 	if err != nil {
 		logs.Error(err.Error())
@@ -177,7 +178,7 @@ func query(w http.ResponseWriter, r *http.Request) {
 	case 1:
 		queryStock(w, r)
 	default:
-		t, _ := template.ParseFiles("view/index.gtpl")
+		t, _ := template.ParseFiles("view/first.gtpl", "view/header.gtpl", "view/footer.gtpl")
 		t.Execute(w, nil)
 	}
 }
@@ -189,7 +190,7 @@ func stock(w http.ResponseWriter, r *http.Request) {
 		if m, ok := r.Form["do"]; ok {
 			key = m[0]
 			sk := libs.QueryOneStock(key, 0, 100)
-			t, _ := template.ParseFiles("view/onestock.gtpl")
+			t, _ := template.ParseFiles("view/onestock.gtpl", "view/header.gtpl", "view/footer.gtpl")
 			err := t.Execute(w, sk)
 			if err != nil {
 				logs.Error(err.Error())
@@ -199,7 +200,7 @@ func stock(w http.ResponseWriter, r *http.Request) {
 			tt := tn.Add(-100 * 24 * time.Hour)
 			s := fmt.Sprintf("%d-%2d-%2d", tt.Year(), tt.Month(), tt.Day())
 			sk := libs.QueryMarketCaps(s)
-			t, _ := template.ParseFiles("view/stocksum.gtpl")
+			t, _ := template.ParseFiles("view/stocksum.gtpl", "view/header.gtpl", "view/footer.gtpl")
 			err := t.Execute(w, sk)
 			if err != nil {
 				logs.Error(err.Error())
@@ -220,21 +221,30 @@ func help(w http.ResponseWriter, r *http.Request) {
 		text1 := m["text"]
 		text2 := text1.(map[string]interface{})
 		content := text2["content"]
+		keyword := strings.TrimSpace(fmt.Sprintf("%s", content))
+		keyword = strings.ToUpper(keyword)
 		go func() {
-			s := ""
-			if content == nil {
-				s = syscallDo("BABA")
-
-			} else {
-				//sm := template.HTMLEscapeString(strings.TrimSpace(fmt.Sprintf("%s", content)))
-				sm := strings.TrimSpace(fmt.Sprintf("%s", content))
-				//s = syscallDo(sm)
-				s = pluginDo(sm)
+			switch keyword {
+			case "爬股票":
+				fallthrough
+			case "UPDATE STOCK":
+				libs.CrawlStocksJob()
+			case "爬电影":
+				fallthrough
+			case "UPDATE MOVIE":
+				libs.CrawlMovieJob()
+			default:
+				stocks := "BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB"
+				s := ""
+				if strings.Contains(stocks, keyword) {
+					s = libs.CrawlStockJob(keyword)
+				} else {
+					s = pluginDo(keyword)
+				}
+				ss := fmt.Sprintf("@%s\n%s", senderNick, s)
+				dingtalker := libs.NewDingtalker()
+				dingtalker.SendRobotTextMessage(ss)
 			}
-			ss := fmt.Sprintf("@%s\n%s", senderNick, s)
-			dingtalker := libs.NewDingtalker()
-			dingtalker.SendRobotTextMessage(ss)
-
 		}()
 	}
 

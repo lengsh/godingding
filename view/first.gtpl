@@ -1,12 +1,6 @@
-<html>
-<div align="center">
-<image src="http://47.105.107.171/img/hai.jpg"  height="120" />
-<image src="http://47.105.107.171/img/he.jpg"  height="120" />
-<image src="http://47.105.107.171/img/anmen.jpg"  height="120" />
-</div>
-<BR>
-<div align=center>
+{{template "header" .}}
 
+<div align=center>
 <table border="0" cellspacing="0" cellpadding="0">
  {{range .}}
  <tr><th align="left" width=200>{{.Name}} </th><th align="left" width=80>
@@ -31,11 +25,4 @@
  </table>
 </div>
 
-<BR>
-<div align="center" width=300>
-<TR><a href="/movie/query?do=stock">Stock</a>&nbsp;&nbsp;&nbsp;<TR>
-<TR><a href="/movie/query?do=report">Report</a>&nbsp;&nbsp;&nbsp;<TR>
-<TR><a href="/movie/query?do=movie">Movie</a><TR>
-</div>
-
-</html>
+{{template "footer" .}}

@@ -1,4 +1,5 @@
-<html>
+{{template "header" .}}
+
 <div align="center" width=520>
 <table border="1" cellspacing="0" cellpadding="0">
 <tr> <th width=80>市值</th><th width=120>Date</th></tr>
@@ -13,18 +14,11 @@
 {{.SumMarket}}
 {{end}}
 
-</th><th>{{.Date}}</th> </tr>
+</th><th>{{.TString}}</th> </tr>
 {{end}}
 
 </table>
 </div>
-
 <BR>
-<div align="center">
 
-<TR><a href="/movie/first">Home</a><TR>
-<TR><a href="/query?do=stock">Stock</a><TR>
-<TR><a href="/query?do=movie">Movie</a><TR>
-<TR><a href="/query?do=report">Report</a><TR>
-</div>
-</html>
+{{template "footer"}}
