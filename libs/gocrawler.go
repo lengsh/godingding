@@ -12,22 +12,6 @@ import (
 	"time"
 )
 
-func TestUpdate() {
-	r := NewCrawler()
-	defer r.ReleaseCrawler()
-	mvs := QueryTopMovies("YOUKU", 20)
-	for _, mv := range mvs {
-		fr := r.crawlDoubanByChrome(mv.Name)
-		if fr != mv.Douban {
-			mv.Douban = fr
-			UpdateMovie(mv)
-		} else {
-			logs.Debug(fr, " != ", mv.Douban, " don't update")
-		}
-		time.Sleep(2000 * time.Millisecond)
-	}
-}
-
 func CrawlStocksJob() {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
@@ -35,8 +19,41 @@ func CrawlStocksJob() {
 	stocksv := strings.Split(stocks, ",")
 
 	for _, v := range stocksv {
+		logs.Debug(v)
 		r.crawlStockByChrome(v)
 		time.Sleep(10000 * time.Millisecond)
+	}
+
+	////////////////////  try 10 times
+	///////////////////////////////////////////////////
+	nvect := make(map[string]string)
+	i := 0
+	for i < 10 {
+		sv := QueryTodayStock()
+		if len(sv) != len(stocksv) {
+			for _, ns := range stocksv {
+				b := false
+				for _, op := range sv {
+					if ns == op.Name {
+						b = true
+					}
+				}
+				if !b {
+					nvect[ns] = ns
+				}
+			}
+			logs.Debug("the ", i, " times to grab.....")
+			for _, v := range nvect {
+				logs.Debug(v)
+				r.crawlStockByChrome(v)
+				time.Sleep(10000 * time.Millisecond)
+			}
+
+		} else {
+			logs.Debug("Yes,data is ready, break!")
+			break
+		}
+		i++
 	}
 }
 
@@ -44,6 +61,12 @@ func CrawlStockJob(sk string) string {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
 	return r.crawlStockByChrome(sk)
+}
+
+func CrawlCarLimitJob() string {
+	r := NewCrawler()
+	defer r.ReleaseCrawler()
+	return r.crawlXXByChrome()
 }
 
 func CrawlMovieJob() {
@@ -295,7 +318,9 @@ func (r *GoCrawler) crawlTxByChrome() {
 }
 
 func (r *GoCrawler) crawlYoukuByChrome() {
-	url := "https://vip.youku.com/vips/index.html"
+
+	//url := "https://vip.youku.com/vips/index.html"
+	url := "https://h5.vip.youku.com"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
 		Value: "www",
@@ -309,8 +334,41 @@ func (r *GoCrawler) crawlYoukuByChrome() {
 		dingtalker.SendRobotTextMessage(es)
 		return
 	}
-
-	melem, err := r.webDriver.FindElement(selenium.ByClassName, "movielist-container") //swiper-container-book")
+	//  hot vedio
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "movie-lists")
+	if err != nil {
+		logs.Error(err)
+	} else {
+		melems, err := melem.FindElements(selenium.ByTagName, "li")
+		if err != nil {
+			logs.Error(err)
+		} else {
+			//	fmt.Println("近期热播,count = ", len(melems))
+			tn := time.Now().UTC().Add(8 * time.Hour)
+			for _, mel := range melems {
+				slin, err := mel.Text()
+				if err != nil {
+					logs.Error(err)
+				} else {
+					v := strings.Split(slin, "\n")
+					if len(v) == 4 {
+						var mo Movie
+						mo.Company = "YOUKU"
+						val, _ := strconv.ParseFloat(v[1], 32)
+						mo.Rate = float32(val)
+						mo.Name = strings.TrimSpace(v[2])
+						mo.Releasetime = fmt.Sprintf("%d %02d月%02d日", tn.Year(), tn.Month(), tn.Day())
+						//mo.Releasetime = "running"
+						mo.NewMovie()
+					} else {
+						logs.Error("不合规数据:", v)
+					}
+				}
+			}
+		}
+	}
+	//  comming soon
+	melem, err = r.webDriver.FindElement(selenium.ByClassName, "movielist-container") //swiper-container-book")
 	if err != nil {
 		logs.Error(err)
 		return
@@ -473,9 +531,21 @@ func (r *GoCrawler) crawlStockByChrome(sID string) string {
 		fmt.Println("error?")
 		return "error"
 	}
-	melem, err1 := r.webDriver.FindElement(selenium.ByClassName, "listBar")
-	if err1 != nil {
-		logs.Error(err1)
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "price01")
+	if err != nil {
+		logs.Error(err)
+		return "error"
+	}
+	scur, err := melem.Text()
+	if err != nil {
+		logs.Error(err)
+		return "error"
+	}
+
+	melem, err = r.webDriver.FindElement(selenium.ByClassName, "listBar")
+	if err != nil {
+		logs.Error(err)
 		fmt.Println("error?")
 		return "error"
 	}
@@ -509,13 +579,16 @@ func (r *GoCrawler) crawlStockByChrome(sID string) string {
 			}
 			f, _ = strconv.ParseFloat(sbv[1], 32)
 			mo.StartPrice = float32(f)
-
-			s = sv[3]
-			sbv = strings.Split(s, "：")
-			if len(sbv) != 2 {
-				goto RETURN
-			}
-			f, _ = strconv.ParseFloat(sbv[1], 32)
+			/*
+				s = sv[3]
+				sbv = strings.Split(s, "：")
+				if len(sbv) != 2 {
+					goto RETURN
+				}
+				f, _ = strconv.ParseFloat(sbv[1], 32)
+				mo.EndPrice = float32(f)
+			*/
+			f, _ = strconv.ParseFloat(scur, 32)
 			mo.EndPrice = float32(f)
 
 			s = sv[4]
@@ -565,4 +638,31 @@ func (r *GoCrawler) crawlStockByChrome(sID string) string {
 RETURN:
 	logs.Error("something wrong with ", sID)
 	return "error"
+}
+
+///////////////
+func (r *GoCrawler) crawlXXByChrome() string {
+	url := "https://www.baidu.com/from=844b/s?word=%E5%8C%97%E4%BA%AC%E9%99%90%E5%8F%B7&sa=tb&ms=1"
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		// es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		return "error"
+	}
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "s-cluster-container")
+	if err != nil {
+		logs.Error(err)
+		return "error"
+	}
+
+	sn, _ := melem.Text()
+	v := strings.Split(sn, "\n")
+	rets := ""
+	if len(v) >= 8 {
+		rets = fmt.Sprintf("%s\n%s%s%s%s%s\n%s%s%s%s%s", v[7], v[1], "(", v[2], "):", v[3], v[4], "(", v[5], "):", v[6])
+	} else {
+		return "error"
+	}
+	return rets
 }

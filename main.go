@@ -293,8 +293,15 @@ func syscallDo(msg string) string {
 
 func stockPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
-	t := time.Now()
-	if t.Weekday() == time.Sunday || t.Weekday() == time.Saturday {
+
+	dingtalker := libs.NewDingtalker()
+	go func() {
+		s := libs.CrawlCarLimitJob()
+		dingtalker.SendChatTextMessage(s)
+	}()
+
+	tn := time.Now().UTC().Add(8 * time.Hour)
+	if tn.Weekday() == time.Monday || tn.Weekday() == time.Sunday {
 		return
 	}
 
@@ -303,7 +310,6 @@ func stockPing() {
 	}()
 	time.Sleep(20000 * time.Millisecond)
 	s, _ := libs.LastStock("baba")
-	dingtalker := libs.NewDingtalker()
 	dingtalker.SendChatTextMessage(s.String())
 }
 

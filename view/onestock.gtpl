@@ -1,4 +1,5 @@
 {{template "header" .}}
+<BR>
 <div align="center" width=520>
 <table border="1" cellspacing="0" cellpadding="0">
 <tr> <th>ID</th><th width=80>Name</th><th width=80>最高</th><th width=80>最低</th><th width=80>开盘</th><th width=80>收盘</th><th width=80>交易额</th><th width=80>交易量</th><th width=80>市值</th><th width=120>Date</th></tr>

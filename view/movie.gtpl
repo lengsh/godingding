@@ -1,4 +1,5 @@
 {{ template "header" . }}
+<BR>
 <div align="center" width=450 >
 <table border="1" cellspacing="0" cellpadding="0">
 <tr> <th>ID</th><th>Name</th><th>Rate</th><th>ReleaseTime</th><th>Company</th><th>Douban</th></tr>

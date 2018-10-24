@@ -22,7 +22,7 @@ type StockSum struct {
 func (r Stock) NewStock() int {
 	o := orm.NewOrm()
 	var rs orm.RawSeter
-	s := fmt.Sprintf("%d-%02d-%02d", r.CreateDate.Year(), r.CreateDate.Month(), r.CreateDate.Day())
+	s := r.TString() // fmt.Sprintf("%d-%02d-%02d", r.CreateDate.Year(), r.CreateDate.Month(), r.CreateDate.Day())
 	sql := fmt.Sprintf("SELECT * FROM stockorm WHERE  name ='%s' AND create_date ='%s'", r.Name, s)
 	logs.Debug(sql)
 
@@ -45,8 +45,26 @@ func (r Stock) NewStock() int {
 }
 
 func (r Stock) SumMarketCap() float32 {
-	s := fmt.Sprintf("%d-%02d-%02d", r.CreateDate.Year(), r.CreateDate.Month(), r.CreateDate.Day())
-	return QueryMarketCap(s)
+	// s := fmt.Sprintf("%d-%02d-%02d", r.CreateDate.Year(), r.CreateDate.Month(), r.CreateDate.Day())
+	return QueryMarketCap(r.TString())
+}
+
+func QueryTodayStock() []Stockorm {
+	t := time.Now().UTC().Add(8 * time.Hour)
+	s := fmt.Sprintf("%d-%02d-%02d", t.Year(), t.Month(), t.Day())
+	o := orm.NewOrm()
+	var rs orm.RawSeter
+	sql := fmt.Sprintf("SELECT * FROM stockorm where create_date='%s'", s)
+	logs.Debug(sql)
+	rs = o.Raw(sql)
+	var stocks []Stockorm
+	_, err := rs.QueryRows(&stocks)
+	if err != nil {
+		logs.Error(err)
+		return nil
+	} else {
+		return stocks
+	}
 }
 
 func QueryStock(num int) []Stockorm {
