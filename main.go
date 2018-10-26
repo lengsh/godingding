@@ -248,7 +248,7 @@ func help(w http.ResponseWriter, r *http.Request) {
 				if strings.Contains(stocks, keyword) {
 					s = libs.CrawlStockJob(keyword)
 				} else {
-					s = pluginDo(keyword)
+					s = "'xianxing' or 'car limit' -- 汽车限行信息\n'update stock' -- 股票系统数据更新\n'update movie'  -- 影视信息数据更新\n'BABA'...etc  -- 特定股票单独更新与咨询指令"
 				}
 				ss := fmt.Sprintf("@%s\n%s", senderNick, s)
 				dingtalker := libs.NewDingtalker()

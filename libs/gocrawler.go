@@ -74,7 +74,12 @@ func CrawlStockJob(sk string) string {
 func CrawlCarLimitJob() string {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
-	return r.crawlXXByChrome()
+
+	s := r.crawlBaiduXXByChrome()
+	if strings.Contains(s, "error") {
+		return r.crawlSogouXXByChrome()
+	}
+	return s
 }
 
 func CrawlMovieJob() {
@@ -794,20 +799,50 @@ RETURN:
 	return "error"
 }
 
+//////////////
+func (r *GoCrawler) crawlSogouXXByChrome() string {
+	url := "https://m.sogou.com/web/searchList.jsp?keyword=限行尾号&wm=3206"
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		// es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		return "0 error"
+	}
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "vr-limit180417")
+	if err != nil {
+		logs.Error(err)
+		return "1 error"
+	}
+
+	sn, _ := melem.Text()
+	v := strings.Split(sn, "\n")
+	/*
+		       	       for k,vv := range v {
+				       		       fmt.Println(k,"=>",vv)
+		       	       }*/
+	rets := ""
+	if len(v) >= 8 {
+		rets = fmt.Sprintf("%s\n今天(%s)限行：%s\n明天(%s)限行：%s", v[6], v[1], v[2], v[4], v[5])
+	} else {
+		rets = "2 error!"
+	}
+	return rets
+}
+
 ///////////////
-func (r *GoCrawler) crawlXXByChrome() string {
+func (r *GoCrawler) crawlBaiduXXByChrome() string {
 	url := "https://www.baidu.com/from=844b/s?word=%E5%8C%97%E4%BA%AC%E9%99%90%E5%8F%B7&sa=tb&ms=1"
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 		// es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		return "error"
+		return "0 error"
 	}
 
 	melem, err := r.webDriver.FindElement(selenium.ByClassName, "s-cluster-container")
 	if err != nil {
 		logs.Error(err)
-		return "error"
+		return "1 error"
 	}
 
 	sn, _ := melem.Text()
@@ -816,7 +851,7 @@ func (r *GoCrawler) crawlXXByChrome() string {
 	if len(v) >= 8 {
 		rets = fmt.Sprintf("%s\n%s%s%s%s%s\n%s%s%s%s%s", v[7], v[1], "(", v[2], "):", v[3], v[4], "(", v[5], "):", v[6])
 	} else {
-		return "error"
+		return "2 error"
 	}
 	return rets
 }
