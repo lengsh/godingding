@@ -225,6 +225,15 @@ func help(w http.ResponseWriter, r *http.Request) {
 		keyword = strings.ToUpper(keyword)
 		go func() {
 			switch keyword {
+			case "XIANXING":
+				fallthrough
+			case "限行":
+				fallthrough
+			case "CAR LIMIT":
+				s := libs.CrawlCarLimitJob()
+				ss := fmt.Sprintf("@%s\n%s", senderNick, s)
+				dingtalker := libs.NewDingtalker()
+				dingtalker.SendRobotTextMessage(ss)
 			case "爬股票":
 				fallthrough
 			case "UPDATE STOCK":

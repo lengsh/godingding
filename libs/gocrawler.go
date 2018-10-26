@@ -24,11 +24,10 @@ func CrawlStocksJob() {
 		time.Sleep(10000 * time.Millisecond)
 	}
 
-	////////////////////  try 10 times
 	///////////////////////////////////////////////////
-	nvect := make(map[string]string)
 	i := 0
-	for i < 10 {
+	for i < 2 {
+		nvect := make(map[string]string)
 		sv := QueryTodayStock()
 		if len(sv) != len(stocksv) {
 			for _, ns := range stocksv {
@@ -45,10 +44,14 @@ func CrawlStocksJob() {
 			logs.Debug("the ", i, " times to grab.....")
 			for _, v := range nvect {
 				logs.Debug(v)
-				r.crawlStockByChrome(v)
+				switch i {
+				case 0:
+					r.crawlStockByBaiduChrome(v)
+				case 1:
+					r.crawlStockBy163Chrome(v)
+				}
 				time.Sleep(10000 * time.Millisecond)
 			}
-
 		} else {
 			logs.Debug("Yes,data is ready, break!")
 			break
@@ -60,7 +63,12 @@ func CrawlStocksJob() {
 func CrawlStockJob(sk string) string {
 	r := NewCrawler()
 	defer r.ReleaseCrawler()
-	return r.crawlStockByChrome(sk)
+
+	s := r.crawlStockByChrome(sk)
+	if strings.Contains(s, "error") {
+		return r.crawlStockByBaiduChrome(sk)
+	}
+	return s
 }
 
 func CrawlCarLimitJob() string {
@@ -150,7 +158,7 @@ func NewCrawler() *GoCrawler {
 			"--no-sandbox",
 			//      "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0.2 Safari/604.4.7", // 模拟user-agent，防反爬
 			//	"--user-agent=Mozilla/5.0 (Linux; Android 8.1.0; EML-AL00 Build/HUAWEIEML-AL00) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Mobile Safari/537.36"},
-			"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 11_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1"},
+			"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1"},
 	}
 	caps.AddChrome(chromeCaps)
 	// 启动chromedriver，端口号可自定义
@@ -511,28 +519,107 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 }
 
 //////////
-
-func (r *GoCrawler) crawlStockByChrome(sID string) string {
+func (r *GoCrawler) crawlStockBy163Chrome(sID string) string {
 	logs.Debug("try to crawl ", sID)
 	mv := strings.ToUpper(strings.TrimSpace(sID))
-	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
-	/*
-		r.webDriver.AddCookie(&selenium.Cookie{
-					Name:  "defaultJumpDomain",
-					Value: "www",
-		})
-	*/
+	url := fmt.Sprintf("http://quotes.money.163.com/usstock/%s.html", mv)
+
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "a",
+		Value: "www",
+	})
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
-		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := NewDingtalker()
-		dingtalker.SendRobotTextMessage(es)
-		fmt.Println("error?")
-		return "error"
+		es := "[!!!] " + url + " May be shutdown, please make true now!"
+		logs.Error(es)
+		return "0 error"
 	}
 
-	melem, err := r.webDriver.FindElement(selenium.ByClassName, "price01")
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "banner")
+	if err != nil {
+		logs.Error(err)
+		return "1 error"
+	}
+	scur, err := melem.Text()
+	if err != nil {
+		logs.Error(err)
+		return "2 error"
+	}
+	vs := strings.Split(scur, "\n")
+	if len(vs) < 10 {
+		logs.Error("数据页面结构已经修改，需要重新编码！！！！！！")
+		return "3 error"
+	}
+
+	var mo Stockorm
+	mo.Name = mv
+
+	ns := strings.Split(vs[2], " ")
+	if len(ns) < 2 {
+		return "4 error"
+	}
+
+	f, _ := strconv.ParseFloat(ns[1], 32)
+	mo.EndPrice = float32(f)
+
+	ns = strings.Split(vs[6], " ")
+	if len(ns) < 2 {
+		return "4 error"
+	}
+
+	s := ns[0]
+	if len(s) > 6 {
+		f, _ := strconv.ParseFloat(s[6:], 32)
+		mo.StartPrice = float32(f)
+	}
+	s = ns[1]
+	if len(s) > 7 {
+		f, _ := strconv.ParseFloat(s[6:], 32)
+		mo.HighPrice = float32(f)
+	}
+	ns = strings.Split(vs[7], " ")
+	if len(ns) < 5 {
+		return "4 error"
+	}
+	s = ns[1]
+	if len(s) > 7 {
+		f, _ = strconv.ParseFloat(s[6:], 32)
+		mo.LowPrice = float32(f)
+	}
+	// ????
+	mo.TradeFounds = 0.0
+	mo.TradeStock = 0.0
+
+	s = ns[4]
+	if len(s)-5 > 9 {
+		f, _ = strconv.ParseFloat(s[9:len(s)-5], 32)
+		mo.MarketCap = float32(f)
+	}
+	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+
+	mo.NewStock()
+	return mo.String()
+}
+
+//////////
+func (r *GoCrawler) crawlStockByBaiduChrome(sID string) string {
+	logs.Debug("try to crawl ", sID)
+	mv := strings.ToUpper(strings.TrimSpace(sID))
+	url := fmt.Sprintf("https://www.baidu.com/s?wd=%s&rsv_spt=1", mv)
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "a",
+		Value: "www",
+	})
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[!!!] " + url + " May be shutdown, please make true now!"
+		logs.Error(es)
+		return "0 error"
+	}
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "result")
 	if err != nil {
 		logs.Error(err)
 		return "error"
@@ -542,12 +629,79 @@ func (r *GoCrawler) crawlStockByChrome(sID string) string {
 		logs.Error(err)
 		return "error"
 	}
+	vs := strings.Split(scur, "\n")
+	if len(vs) < 31 {
+		logs.Error("数据页面结构已经修改，需要重新编码！！！！！！")
+		return "3 error"
+	}
+
+	var mo Stockorm
+	mo.Name = mv
+
+	f, _ := strconv.ParseFloat(vs[21], 32)
+	mo.HighPrice = float32(f)
+
+	f, _ = strconv.ParseFloat(vs[23], 32)
+	mo.LowPrice = float32(f)
+	f, _ = strconv.ParseFloat(vs[17], 32)
+	mo.StartPrice = float32(f)
+
+	nvs := strings.Split(vs[1], "+")
+	f, _ = strconv.ParseFloat(nvs[0], 32)
+	mo.EndPrice = float32(f)
+	// ????
+	mo.TradeFounds = 0.0
+
+	s := strings.Replace(vs[25], "万", "", -1)
+	s = strings.Replace(s, "亿", "", -1)
+	f, _ = strconv.ParseFloat(s, 32)
+	mo.TradeStock = float32(f)
+
+	s = strings.Replace(vs[31], "万", "", -1)
+	s = strings.Replace(s, "亿", "", -1)
+	f, _ = strconv.ParseFloat(s, 32)
+	mo.MarketCap = float32(f)
+	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+
+	mo.NewStock()
+	return mo.String()
+}
+
+////////
+func (r *GoCrawler) crawlStockByChrome(sID string) string {
+	logs.Debug("try to crawl ", sID)
+	mv := strings.ToUpper(strings.TrimSpace(sID))
+	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "a",
+		Value: "www",
+	})
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[!!!] " + url + " May be shutdown, please make true now!"
+		// dingtalker := NewDingtalker()
+		// dingtalker.SendRobotTextMessage(es)
+		logs.Error(es)
+		return "0 error"
+	}
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "price01")
+	if err != nil {
+		logs.Error(err)
+		return "1 error"
+	}
+	scur, err := melem.Text()
+	if err != nil {
+		logs.Error(err)
+		return "2 error"
+	}
 
 	melem, err = r.webDriver.FindElement(selenium.ByClassName, "listBar")
 	if err != nil {
 		logs.Error(err)
 		fmt.Println("error?")
-		return "error"
+		return "3 error"
 	}
 
 	var mo Stockorm

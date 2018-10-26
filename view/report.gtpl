@@ -7,6 +7,16 @@
 {{template "iqiyi" .}}
 {{template "tx" .}}
 <BR><BR>
-<div align="center">
+<div align="left">
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<BR>
+<a href="/" >Home</a> 
 </div>
 </html>
