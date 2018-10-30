@@ -17,5 +17,7 @@
 <h3>10标总市值：<font color=red>{{ (index . 0).SumMarketCap }} </font> </H3>
 <a href="http://47.105.107.171/stock/stock?s=all"> 趋势&历史 </a> <BR>
 </div>
-
+<div align=center>
+BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB
+</div>
 {{ template "footer" .}}

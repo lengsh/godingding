@@ -26,7 +26,7 @@ func CrawlStocksJob() {
 
 	///////////////////////////////////////////////////
 	i := 0
-	for i < 2 {
+	for i < 10 {
 		nvect := make(map[string]string)
 		sv := QueryTodayStock()
 		if len(sv) != len(stocksv) {
@@ -41,21 +41,27 @@ func CrawlStocksJob() {
 					nvect[ns] = ns
 				}
 			}
+			if len(nvect) == 0 { // never to be run !!!!!
+				break
+			}
 			logs.Debug("the ", i, " times to grab.....")
 			for _, v := range nvect {
 				logs.Debug(v)
-				switch i {
+				switch i % 3 {
 				case 0:
-					r.crawlStockByBaiduChrome(v)
-				case 1:
 					r.crawlStockBy163Chrome(v)
+				case 1:
+					r.crawlStockByBaiduChrome(v)
+				case 2:
+					r.crawlStockByChrome(v)
 				}
-				time.Sleep(10000 * time.Millisecond)
+				time.Sleep(100000 * time.Millisecond)
 			}
 		} else {
 			logs.Debug("Yes,data is ready, break!")
 			break
 		}
+		time.Sleep(10000000 * time.Millisecond)
 		i++
 	}
 }
@@ -597,13 +603,25 @@ func (r *GoCrawler) crawlStockBy163Chrome(sID string) string {
 	mo.TradeStock = 0.0
 
 	s = ns[4]
-	if len(s)-5 > 9 {
-		f, _ = strconv.ParseFloat(s[9:len(s)-5], 32)
-		mo.MarketCap = float32(f)
+	bb := strings.Contains(s, "万亿")
+	if bb {
+		if len(s)-8 > 9 { //  len("(万亿)") == 8
+			f, _ = strconv.ParseFloat(s[9:len(s)-5], 32)
+			mo.MarketCap = float32(f) * 10000
+		}
+	} else {
+		if len(s)-5 > 9 { //  len("(亿)") == 5
+			f, _ = strconv.ParseFloat(s[9:len(s)-5], 32)
+			mo.MarketCap = float32(f)
+		}
 	}
-	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
 
-	mo.NewStock()
+	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+	if mo.MarketCap > 0 {
+		mo.NewStock()
+	} else {
+		logs.Error("MarketCap is Zero !!!!!!!!!!!!!! ")
+	}
 	return mo.String()
 }
 
@@ -662,13 +680,21 @@ func (r *GoCrawler) crawlStockByBaiduChrome(sID string) string {
 	f, _ = strconv.ParseFloat(s, 32)
 	mo.TradeStock = float32(f)
 
+	bb := strings.Contains(vs[31], "万亿")
 	s = strings.Replace(vs[31], "万", "", -1)
 	s = strings.Replace(s, "亿", "", -1)
 	f, _ = strconv.ParseFloat(s, 32)
 	mo.MarketCap = float32(f)
-	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+	if bb {
+		mo.MarketCap = mo.MarketCap * 10000
+	}
 
-	mo.NewStock()
+	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+	if mo.MarketCap > 0 {
+		mo.NewStock()
+	} else {
+		logs.Error("MarketCap is Zerooooooooooooooooooo !!")
+	}
 	return mo.String()
 }
 
@@ -775,14 +801,24 @@ func (r *GoCrawler) crawlStockByChrome(sID string) string {
 			if len(sbv) != 2 {
 				goto RETURN
 			}
+
+			bb := strings.Contains(s, "万亿")
+
 			s = strings.Replace(sbv[1], "万", "", -1)
 			s = strings.Replace(s, "亿", "", -1)
 			f, _ = strconv.ParseFloat(s, 32)
 			mo.MarketCap = float32(f)
+			if bb {
+				mo.MarketCap = mo.MarketCap * 10000
+			}
 			mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
 			/////////
 			///////////
-			mo.NewStock()
+			if mo.MarketCap > 0 {
+				mo.NewStock()
+			} else {
+				logs.Error("MarketCap is zeroOOOOOOOOOOOOOOooooooooooooo !!")
+			}
 			return mo.String()
 			//	fmt.Println(mo)
 

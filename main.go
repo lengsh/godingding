@@ -30,6 +30,7 @@ func main() {
 	logs.SetLogger(logs.AdapterFile, `{"filename":"./log/godingding.log","maxlines":10000,"maxsize":102400,"daily":true,"maxdays":2}`)
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(3)
+	logs.SetLevel(logs.LevelError)
 
 	http.HandleFunc("/", firstPage)  //设置访问的路由
 	http.HandleFunc("/send", send)   //设置访问的路由
