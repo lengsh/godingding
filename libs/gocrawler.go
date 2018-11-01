@@ -13,93 +13,92 @@ import (
 )
 
 func CrawlStocksJob() {
-	r := NewCrawler()
-	defer r.ReleaseCrawler()
-	stocks := "BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB"
-	stocksv := strings.Split(stocks, ",")
-
-	for _, v := range stocksv {
-		logs.Debug(v)
-		r.crawlStockByChrome(v)
-		time.Sleep(10000 * time.Millisecond)
-	}
-
-	///////////////////////////////////////////////////
 	i := 0
-	for i < 10 {
-		nvect := make(map[string]string)
-		sv := QueryTodayStock()
-		if len(sv) != len(stocksv) {
-			for _, ns := range stocksv {
-				b := false
-				for _, op := range sv {
-					if ns == op.Name {
-						b = true
-					}
-				}
-				if !b {
-					nvect[ns] = ns
-				}
-			}
-			if len(nvect) == 0 { // never to be run !!!!!
-				break
-			}
-			logs.Debug("the ", i, " times to grab.....")
-			for _, v := range nvect {
-				logs.Debug(v)
-				switch i % 3 {
-				case 0:
-					r.crawlStockBy163Chrome(v)
-				case 1:
-					r.crawlStockByBaiduChrome(v)
-				case 2:
-					r.crawlStockByChrome(v)
-				}
-				time.Sleep(100000 * time.Millisecond)
-			}
-		} else {
-			logs.Debug("Yes,data is ready, break!")
-			break
-		}
+	for i < 5 {
+		crawlStocks(i)
 		time.Sleep(10000000 * time.Millisecond)
 		i++
 	}
 }
 
-func CrawlStockJob(sk string) string {
-	r := NewCrawler()
+func crawlStocks(idx int) {
+	idx = idx % 5
+	Wos := map[int]string{0: "Android", 1: "Android", 2: "PC", 3: "Android", 4: "PC"}
+	stocks := "BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB"
+	stocksv := strings.Split(stocks, ",")
+	r := NewCrawler(Wos[idx])
 	defer r.ReleaseCrawler()
 
-	s := r.crawlStockByChrome(sk)
+	///////////////////////////////////////////////////
+	nvect := make(map[string]string)
+	sv := QueryTodayStock()
+	if len(sv) != len(stocksv) {
+		for _, ns := range stocksv {
+			b := false
+			for _, op := range sv {
+				if ns == op.Name {
+					b = true
+				}
+			}
+			if !b {
+				nvect[ns] = ns
+			}
+		}
+		for _, v := range nvect {
+			logs.Debug(v)
+			switch idx {
+			case 0:
+				r.crawlStockFromFutuH5(v)
+			case 1:
+				r.crawlStockFrom163H5(v)
+			case 2:
+				r.crawlStockFromBaiduPC(v)
+			case 3:
+				r.crawlStockFromBaiduH5(v)
+			case 4:
+				r.crawlStockFromSinaPC(v)
+			}
+			time.Sleep(100000 * time.Millisecond)
+		}
+	} else {
+		logs.Debug("Yes,data is ready, break!")
+	}
+}
+
+func CrawlStockJob(sk string) string {
+	r := NewCrawler("IOS")
+	defer r.ReleaseCrawler()
+
+	s := r.crawlStockFromFutuH5(sk)
 	if strings.Contains(s, "error") {
-		return r.crawlStockByBaiduChrome(sk)
+		return r.crawlStockFrom163H5(sk)
 	}
 	return s
 }
 
 func CrawlCarLimitJob() string {
-	r := NewCrawler()
+	r := NewCrawler("IOS")
 	defer r.ReleaseCrawler()
 
-	s := r.crawlBaiduXXByChrome()
+	s := r.crawlCarLimitFromBaiduH5()
 	if strings.Contains(s, "error") {
-		return r.crawlSogouXXByChrome()
+		return r.crawlCarLimitFromSogouH5()
 	}
 	return s
 }
 
 func CrawlMovieJob() {
-	r := NewCrawler()
+	r := NewCrawler("IOS")
 	defer r.ReleaseCrawler()
-	r.crawlIqiyiByChrome()
-	r.crawlTxByChrome()
-	r.crawlYoukuByChrome()
+	r.crawlIqiyiH5()
+	r.crawlTxH5()
+	r.crawlYoukuH5()
 
 	NewMylog("sys", "Update")
 
 	mvs := QueryTopMovies("IQIYI", 20)
 	for _, mv := range mvs {
-		fr := r.crawlDoubanByChrome(mv.Name)
+		fr := r.crawlDoubanH5(mv.Name)
 		if fr != mv.Douban {
 			mv.Douban = fr
 			UpdateMovie(mv)
@@ -109,7 +108,7 @@ func CrawlMovieJob() {
 
 	mvs = QueryTopMovies("TX", 20)
 	for _, mv := range mvs {
-		fr := r.crawlDoubanByChrome(mv.Name)
+		fr := r.crawlDoubanH5(mv.Name)
 		if fr != mv.Douban {
 			mv.Douban = fr
 			UpdateMovie(mv)
@@ -119,7 +118,7 @@ func CrawlMovieJob() {
 
 	mvs = QueryTopMovies("YOUKU", 20)
 	for _, mv := range mvs {
-		fr := r.crawlDoubanByChrome(mv.Name)
+		fr := r.crawlDoubanH5(mv.Name)
 		if fr != mv.Douban {
 			mv.Douban = fr
 			UpdateMovie(mv)
@@ -129,13 +128,13 @@ func CrawlMovieJob() {
 }
 
 func UpdateDouban() {
-	r := NewCrawler()
+	r := NewCrawler("IOS")
 	defer r.ReleaseCrawler()
 
 	mvs := QueryZeroDouban(100)
 	for _, mv := range mvs {
 		logs.Debug("craw :", mv.Name, "; length=", len(mv.Name), " ?=", len(strings.TrimSpace(mv.Name)))
-		fr := r.crawlDoubanByChrome(strings.TrimSpace(mv.Name))
+		fr := r.crawlDoubanH5(strings.TrimSpace(mv.Name))
 		if fr != mv.Douban {
 			mv.Douban = fr
 			UpdateMovie(mv)
@@ -149,12 +148,17 @@ type GoCrawler struct {
 	webDriver selenium.WebDriver
 }
 
-func NewCrawler() *GoCrawler {
+func NewCrawler(wos string) *GoCrawler {
+	if wos != "PC" && wos != "Mac" && wos != "Android" && wos != "IOS" {
+		wos = "IOS"
+	}
 	// StartChrome 启动谷歌浏览器headless模式
 	opts := []selenium.ServiceOption{}
 	caps := selenium.Capabilities{
 		"browserName": "chrome",
 	}
+
+	Wos := map[string]string{"PC": "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36", "Mac": "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0.2 Safari/604.4.7", "Android": "--user-agent=Mozilla/5.0 (Linux; Android 8.1.0; EML-AL00 Build/HUAWEIEML-AL00) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Mobile Safari/537.36", "IOS": "--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 11_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1"}
 
 	// 禁止加载图片，加快渲染速度
 	imagCaps := map[string]interface{}{
@@ -167,13 +171,10 @@ func NewCrawler() *GoCrawler {
 		Args: []string{
 			"--headless", // 设置Chrome无头模式
 			"--no-sandbox",
-			//      "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0.2 Safari/604.4.7", // 模拟user-agent，防反爬
-			//	"--user-agent=Mozilla/5.0 (Linux; Android 8.1.0; EML-AL00 Build/HUAWEIEML-AL00) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Mobile Safari/537.36"},
-			"--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 12_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.0 Mobile/15E148 Safari/604.1"},
+			Wos[wos]},
 	}
 	caps.AddChrome(chromeCaps)
 	// 启动chromedriver，端口号可自定义
-
 	// 调起chrome浏览器
 	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, opts...)
 	if err != nil {
@@ -193,7 +194,7 @@ func (r *GoCrawler) ReleaseCrawler() {
 	defer r.webDriver.Quit()
 }
 
-func (r *GoCrawler) crawlIqiyiByChrome() {
+func (r *GoCrawler) crawlIqiyiH5() {
 	url := "http://m.iqiyi.com/vip/timeLine.html"
 
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -261,18 +262,13 @@ func (r *GoCrawler) crawlIqiyiByChrome() {
 			}
 			mo.Rate = float32(value)
 		}
-		//	fmt.Println(mo)
-		mo.NewMovie()
-	}
-	/*
-		str, err := webDriver.PageSource()
-		if err != nil {
-			fmt.Println(err)
+		if len(mo.Name) > 0 {
+			mo.NewMovie()
 		}
-	*/
+	}
 }
 
-func (r *GoCrawler) crawlTxByChrome() {
+func (r *GoCrawler) crawlTxH5() {
 	url := "http://film.qq.com/weixin/upcoming.html"
 
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -331,14 +327,15 @@ func (r *GoCrawler) crawlTxByChrome() {
 				mo.Rate = float32(val)
 			}
 		}
-		//	fmt.Println(mo)
-		mo.NewMovie()
+		if len(mo.Name) > 0 {
+			mo.NewMovie()
+		}
 	}
 }
 
-func (r *GoCrawler) crawlYoukuByChrome() {
+/////////////////////
+func (r *GoCrawler) crawlYoukuH5() {
 
-	//url := "https://vip.youku.com/vips/index.html"
 	url := "https://h5.vip.youku.com"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
@@ -378,7 +375,9 @@ func (r *GoCrawler) crawlYoukuByChrome() {
 						mo.Name = strings.TrimSpace(v[2])
 						mo.Releasetime = fmt.Sprintf("%d %02d月%02d日", tn.Year(), tn.Month(), tn.Day())
 						//mo.Releasetime = "running"
-						mo.NewMovie()
+						if len(mo.Name) > 0 {
+							mo.NewMovie()
+						}
 					} else {
 						logs.Error("不合规数据:", v)
 					}
@@ -446,20 +445,20 @@ func (r *GoCrawler) crawlYoukuByChrome() {
 				}
 			}
 		}
-		//	fmt.Println(mo)
-		mo.NewMovie()
+		if len(mo.Name) > 0 {
+			mo.NewMovie()
+		}
 	}
 }
 
-func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
+///////////////////////////////
+func (r *GoCrawler) crawlDoubanH5(mv string) float32 {
 	mv = strings.TrimSpace(mv)
 	url := fmt.Sprintf("https://www.douban.com/search?cat=1002&q=%s", mv)
-	/*
-		r.webDriver.AddCookie(&selenium.Cookie{
-			Name:  "defaultJumpDomain",
-			Value: "www",
-		})
-	*/
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "a",
+		Value: "www",
+	})
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
@@ -530,7 +529,7 @@ func (r *GoCrawler) crawlDoubanByChrome(mv string) float32 {
 }
 
 //////////
-func (r *GoCrawler) crawlStockBy163Chrome(sID string) string {
+func (r *GoCrawler) crawlStockFrom163H5(sID string) string {
 	logs.Debug("try to crawl ", sID)
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("http://quotes.money.163.com/usstock/%s.html", mv)
@@ -625,8 +624,200 @@ func (r *GoCrawler) crawlStockBy163Chrome(sID string) string {
 	return mo.String()
 }
 
+func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
+	logs.Debug("try to crawl ", sID)
+	mv := strings.ToUpper(strings.TrimSpace(sID))
+	url := fmt.Sprintf("https://gupiao.baidu.com/stock/us%s.html", mv)
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "a",
+		Value: "www",
+	})
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		fmt.Println(es)
+		return "0 error"
+	}
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "stock-info") //hqbox-detail")  //" hq_hqdata")
+	if err != nil {
+		logs.Error(err)
+		return "1 error"
+	}
+
+	scur, err := melem.Text()
+	if err != nil {
+		logs.Error(err)
+		return "2 error"
+	}
+	vs := strings.Split(scur, "\n")
+
+	if len(vs) > 14 {
+		s := vs[1]
+		sv := strings.Split(s, " ")
+		if len(sv) < 3 {
+			return ""
+		}
+		shoupan := sv[0]
+		kaipan := vs[3]
+		zuidi := vs[9]
+		zuigao := vs[7]
+		chengjiao := vs[11]
+		shizhi := vs[13]
+
+		var mo Stockorm
+		mo.Name = mv
+		f, _ := strconv.ParseFloat(shoupan, 32)
+		mo.EndPrice = float32(f)
+
+		f, _ = strconv.ParseFloat(kaipan, 32)
+		mo.StartPrice = float32(f)
+
+		f, _ = strconv.ParseFloat(zuidi, 32)
+		mo.LowPrice = float32(f)
+
+		f, _ = strconv.ParseFloat(zuigao, 32)
+		mo.HighPrice = float32(f)
+
+		idx := strings.Index(chengjiao, "万")
+		if len(chengjiao) > idx {
+			f, _ = strconv.ParseFloat(s[0:idx], 32)
+			mo.TradeStock = float32(f) * 10000
+		}
+
+		bb := strings.Contains(shizhi, "万亿")
+		if bb {
+			if len(shizhi)-8 > 9 { //  len("(万亿)") == 8
+				f, _ = strconv.ParseFloat(shizhi[9:len(shizhi)-5], 32)
+				mo.MarketCap = float32(f) * 10000
+			}
+		} else {
+			if len(shizhi)-5 > 9 { //  len("(亿)") == 5
+				f, _ = strconv.ParseFloat(shizhi[9:len(shizhi)-5], 32)
+				mo.MarketCap = float32(f)
+			}
+		}
+
+		mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+		if mo.MarketCap > 0 {
+			mo.NewStock()
+		} else {
+			logs.Error("MarketCap is Zero !!!!!!!!!!!!!! ")
+		}
+		return mo.String()
+	}
+
+	return "error"
+}
+
+func (r *GoCrawler) crawlStockFromSinaPC(sID string) string {
+	logs.Debug("try to crawl ", sID)
+	mv := strings.ToUpper(strings.TrimSpace(sID))
+	url := fmt.Sprintf("https://stock.finance.sina.com.cn/usstock/quotes/%s.html", mv)
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "a",
+		Value: "www",
+	})
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		fmt.Println(es)
+		return "0 error"
+	}
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "block")
+	if err != nil {
+		logs.Error(err)
+		return "1 error"
+	}
+
+	scur, err := melem.Text()
+	if err != nil {
+		logs.Error(err)
+		return "2 error"
+	}
+	vs := strings.Split(scur, "\n")
+	if len(vs) > 13 {
+		s := vs[7]
+		idx := 0
+		if !strings.Contains(s, "详细行情") {
+			s = vs[11]
+			if strings.Contains(s, "详细行情") {
+				idx = 4
+			}
+		}
+
+		shoupan := vs[2]
+		s = vs[8+idx]
+		sv := strings.Split(s, " ")
+		if len(sv) < 8 {
+			return "4 error"
+		}
+		kaipan := sv[1]
+		shizhi := sv[7]
+
+		s = vs[9+idx]
+		sv = strings.Split(s, " ")
+		if len(sv) < 4 {
+			return "4 error"
+		}
+		chengjiao := sv[1]
+		s = sv[3]
+		sv = strings.Split(s, "-")
+		if len(sv) < 2 {
+
+			return "4 error"
+		}
+		zuidi := sv[0]
+		zuigao := sv[1]
+
+		var mo Stockorm
+		mo.Name = mv
+		f, _ := strconv.ParseFloat(shoupan, 32)
+		mo.EndPrice = float32(f)
+
+		f, _ = strconv.ParseFloat(kaipan, 32)
+		mo.StartPrice = float32(f)
+
+		f, _ = strconv.ParseFloat(zuidi, 32)
+		mo.LowPrice = float32(f)
+
+		f, _ = strconv.ParseFloat(zuigao, 32)
+		mo.HighPrice = float32(f)
+
+		idx = strings.Index(chengjiao, "万")
+		if len(chengjiao) > idx {
+			f, _ = strconv.ParseFloat(s[0:idx], 32)
+			mo.TradeStock = float32(f) * 10000
+		}
+
+		bb := strings.Contains(shizhi, "万亿")
+		if bb {
+			if len(shizhi)-8 > 9 { //  len("(万亿)") == 8
+				f, _ = strconv.ParseFloat(shizhi[9:len(shizhi)-5], 32)
+				mo.MarketCap = float32(f) * 10000
+			}
+		} else {
+			if len(shizhi)-5 > 9 { //  len("(亿)") == 5
+				f, _ = strconv.ParseFloat(shizhi[9:len(shizhi)-5], 32)
+				mo.MarketCap = float32(f)
+			}
+		}
+
+		mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+		if mo.MarketCap > 0 {
+			mo.NewStock()
+		} else {
+			logs.Error("MarketCap is Zero !!!!!!!!!!!!!! ")
+		}
+		return mo.String()
+	}
+	return "error"
+}
+
 //////////
-func (r *GoCrawler) crawlStockByBaiduChrome(sID string) string {
+func (r *GoCrawler) crawlStockFromBaiduH5(sID string) string {
 	logs.Debug("try to crawl ", sID)
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.baidu.com/s?wd=%s&rsv_spt=1", mv)
@@ -699,7 +890,7 @@ func (r *GoCrawler) crawlStockByBaiduChrome(sID string) string {
 }
 
 ////////
-func (r *GoCrawler) crawlStockByChrome(sID string) string {
+func (r *GoCrawler) crawlStockFromFutuH5(sID string) string {
 	logs.Debug("try to crawl ", sID)
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
@@ -836,7 +1027,7 @@ RETURN:
 }
 
 //////////////
-func (r *GoCrawler) crawlSogouXXByChrome() string {
+func (r *GoCrawler) crawlCarLimitFromSogouH5() string {
 	url := "https://m.sogou.com/web/searchList.jsp?keyword=限行尾号&wm=3206"
 	err := r.webDriver.Get(url)
 	if err != nil {
@@ -866,7 +1057,7 @@ func (r *GoCrawler) crawlSogouXXByChrome() string {
 }
 
 ///////////////
-func (r *GoCrawler) crawlBaiduXXByChrome() string {
+func (r *GoCrawler) crawlCarLimitFromBaiduH5() string {
 	url := "https://www.baidu.com/from=844b/s?word=%E5%8C%97%E4%BA%AC%E9%99%90%E5%8F%B7&sa=tb&ms=1"
 	err := r.webDriver.Get(url)
 	if err != nil {

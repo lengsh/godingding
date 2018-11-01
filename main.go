@@ -39,14 +39,21 @@ func main() {
 	http.HandleFunc("/help", help)   //设置访问的路由
 
 	scheduler := gocron.NewScheduler()
-	job1 := scheduler.Every(1).Day().At("07:01")
+
+	job0 := scheduler.Every(1).Day().At("07:01")
+	job0.Do(carLimit)
+
+	job1 := scheduler.Every(1).Day().At("07:09")
 	job1.Do(stockPing)
 
-	job2 := scheduler.Every(1).Day().At("10:49")
-	job2.Do(crawMovieJob)
+	job2 := scheduler.Every(1).Day().At("09:09")
+	job2.Do(stockPing)
 
-	job3 := scheduler.Every(1).Day().At("20:01")
+	job3 := scheduler.Every(1).Day().At("10:49")
 	job3.Do(crawMovieJob)
+
+	job4 := scheduler.Every(1).Day().At("20:01")
+	job4.Do(crawMovieJob)
 	//scheduler.Every(1).Day().Do(crawJob)
 	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
@@ -301,26 +308,30 @@ func syscallDo(msg string) string {
 	}
 }
 
+func carLimit() {
+	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
+
+	dingtalker := libs.NewDingtalker()
+	s := libs.CrawlCarLimitJob()
+	dingtalker.SendChatTextMessage(s)
+}
+
 func stockPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
 
 	dingtalker := libs.NewDingtalker()
-	go func() {
-		s := libs.CrawlCarLimitJob()
-		dingtalker.SendChatTextMessage(s)
-	}()
 
 	tn := time.Now().UTC().Add(8 * time.Hour)
 	if tn.Weekday() == time.Monday || tn.Weekday() == time.Sunday {
 		return
 	}
 
-	go func() {
-		libs.CrawlStocksJob()
-	}()
+	//	go func() {
+	libs.CrawlStocksJob()
+	//	}()
 	time.Sleep(20000 * time.Millisecond)
-	s, _ := libs.LastStock("baba")
-	dingtalker.SendChatTextMessage(s.String())
+	o, _ := libs.LastStock("baba")
+	dingtalker.SendChatTextMessage(o.String())
 }
 
 func crawMovieJob() {
