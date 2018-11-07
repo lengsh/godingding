@@ -16,19 +16,20 @@ func CrawlStocksJob() {
 	i := 0
 	for i < 5 {
 		crawlStocks(i)
-		time.Sleep(10000000 * time.Millisecond)
+		time.Sleep(10000 * time.Millisecond)
 		i++
 	}
 }
 
 func crawlStocks(idx int) {
 	idx = idx % 5
-	Wos := map[int]string{0: "Android", 1: "Android", 2: "PC", 3: "Android", 4: "PC"}
+	Wos := map[int]string{0: "PC", 1: "Android", 2: "PC", 3: "Android", 4: "PC"}
 	stocks := "BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB"
 	stocksv := strings.Split(stocks, ",")
 	r := NewCrawler(Wos[idx])
 	defer r.ReleaseCrawler()
 
+	logs.Debug("new ", Wos[idx], " driver to grab object, idx = ", idx)
 	///////////////////////////////////////////////////
 	nvect := make(map[string]string)
 	sv := QueryTodayStock()
@@ -44,11 +45,12 @@ func crawlStocks(idx int) {
 				nvect[ns] = ns
 			}
 		}
+		logs.Info(nvect)
 		for _, v := range nvect {
 			logs.Debug(v)
 			switch idx {
 			case 0:
-				r.crawlStockFromFutuH5(v)
+				r.crawlStockFromFutuPC(v)
 			case 1:
 				r.crawlStockFrom163H5(v)
 			case 2:
@@ -66,10 +68,10 @@ func crawlStocks(idx int) {
 }
 
 func CrawlStockJob(sk string) string {
-	r := NewCrawler("IOS")
+	r := NewCrawler("PC") //  "IOS")
 	defer r.ReleaseCrawler()
 
-	s := r.crawlStockFromFutuH5(sk)
+	s := r.crawlStockFromFutuPC(sk)
 	if strings.Contains(s, "error") {
 		return r.crawlStockFrom163H5(sk)
 	}
@@ -176,6 +178,7 @@ func NewCrawler(wos string) *GoCrawler {
 	caps.AddChrome(chromeCaps)
 	// 启动chromedriver，端口号可自定义
 	// 调起chrome浏览器
+	logs.Debug("try to create new chromedirver service by ", Wos[wos])
 	service, err := selenium.NewChromeDriverService("/usr/bin/chromedriver", 9515, opts...)
 	if err != nil {
 		logs.Error("Error starting the ChromeDriver server:", err)
@@ -190,8 +193,9 @@ func NewCrawler(wos string) *GoCrawler {
 }
 
 func (r *GoCrawler) ReleaseCrawler() {
-	defer r.service.Stop()
+	logs.Debug("service stop & webDriver quit!")
 	defer r.webDriver.Quit()
+	defer r.service.Stop()
 }
 
 func (r *GoCrawler) crawlIqiyiH5() {
@@ -890,7 +894,7 @@ func (r *GoCrawler) crawlStockFromBaiduH5(sID string) string {
 }
 
 ////////
-func (r *GoCrawler) crawlStockFromFutuH5(sID string) string {
+func (r *GoCrawler) crawlStockFromFutuPC(sID string) string {
 	logs.Debug("try to crawl ", sID)
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)

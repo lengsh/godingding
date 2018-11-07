@@ -10,6 +10,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os/exec"
 	"strings"
@@ -30,7 +31,7 @@ func main() {
 	logs.SetLogger(logs.AdapterFile, `{"filename":"./log/godingding.log","maxlines":10000,"maxsize":102400,"daily":true,"maxdays":2}`)
 	logs.EnableFuncCallDepth(true)
 	logs.SetLogFuncCallDepth(3)
-	logs.SetLevel(logs.LevelError)
+	//	logs.SetLevel(logs.LevelError)
 
 	http.HandleFunc("/", firstPage)  //设置访问的路由
 	http.HandleFunc("/send", send)   //设置访问的路由
@@ -319,19 +320,18 @@ func carLimit() {
 func stockPing() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
 
-	dingtalker := libs.NewDingtalker()
-
 	tn := time.Now().UTC().Add(8 * time.Hour)
 	if tn.Weekday() == time.Monday || tn.Weekday() == time.Sunday {
 		return
 	}
 
-	//	go func() {
 	libs.CrawlStocksJob()
-	//	}()
-	time.Sleep(20000 * time.Millisecond)
-	o, _ := libs.LastStock("baba")
-	dingtalker.SendChatTextMessage(o.String())
+	i := rand.Intn(100)
+	if i%2 == 0 {
+		o, _ := libs.LastStock("baba")
+		dingtalker := libs.NewDingtalker()
+		dingtalker.SendChatTextMessage(o.String())
+	}
 }
 
 func crawMovieJob() {
