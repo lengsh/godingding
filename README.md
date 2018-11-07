@@ -31,8 +31,8 @@ go build -buildmode=plugin stockplugin.go
 
 ```
 # 3. 数据库及ORM
-````
 
+````
 [root@yl-web yl]# yum install mariadb-server mariadb 
 mariadb数据库的相关命令是：
 
@@ -61,7 +61,7 @@ default-character-set=utf8
 [mysql]
 default-character-set=utf8
 
-````
+
 type Stock struct {
 	Name        string  `orm:"size(20); index"`
 	HighPrice   float64 `orm: "default(0)"`
@@ -91,7 +91,6 @@ num, err := rs.QueryRows(&stocks)
 
 https://beego.me/docs/mvc/model/overview.md
 https://astaxie.gitbooks.io/build-web-application-with-golang/zh/05.5.html
-
 
 ````
 # 4. 动态网页爬取，https
@@ -176,8 +175,7 @@ if err != nil {
 	panic(err)
 }
 
-``````
-获取一个a标签下的URL连接地址：
+##获取一个a标签下的URL连接地址：
 
 melem, err := r.webDriver.FindElement(selenium.ByClassName, "findSection") //article")
 if err != nil {
@@ -212,8 +210,6 @@ if err != nil {
 		return ""
 }
 
-
-``````
 
 https://github.com/benbjohnson/phantomjs/blob/master/README.md
 https://github.com/henrylee2cn/pholcus
@@ -269,23 +265,18 @@ https://github.com/hugozhu/godingtalk
 ```
 https://www.jianshu.com/p/96a969ad4b02
 
-```
 ## 后台执行服务 
-```
 nohup让提交的命令忽略 hangup 信号( run a command immune to hangups, with output to a non-tty)
 sudo nohup godingding 2>&1 &
 or
 sudo setsid godingding &
 
 
-
 [参见]
  https://www.ibm.com/developerworks/cn/linux/l-cn-nohup/index.html
  https://github.com/sevlyar/go-daemon
 
-```
 ## vim配置go语法高亮
-```
 cd ~
 mkdir .vim
 cd .vim
@@ -302,4 +293,3 @@ Plug 'fatih/vim-go', { 'do': ':GoInstallBinaries' }
 call plug#end()
 let g:go_version_warning = 0
 ```
-
