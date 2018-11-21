@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
+	"math"
 	"strings"
 	"time"
 	//	"github.com/lengsh/godingding/log4go"
@@ -157,6 +158,74 @@ func LastStock(stock string) (Stockorm, error) {
 	}
 }
 
+/*
+[ { "key":"1996", "value" : "22" }, { "key":"1997", "value" : "22" }]
+*/
+func StockLineJson(name string) string {
+	LEN := 15
+	sv := QueryOneStock(name, 0, 100)
+	if sv == nil || len(sv) < LEN {
+		return ""
+	}
+
+	ilen := len(sv)
+	step := ilen / LEN
+	sret := "["
+	so := sv[ilen-1]
+	ts := fmt.Sprintf("%02d%02d", so.CreateDate.Month(), so.CreateDate.Day())
+	dm := int(math.Round(float64(so.MarketCap / 100)))
+	sret = fmt.Sprintf("[{\"key\":\"%s\",\"value\":\"%d\"}", ts, dm)
+
+	for j := LEN - 2; j > 1; j-- {
+		so := sv[j*step]
+		dm := int(math.Round(float64(so.MarketCap / 100)))
+		ts := fmt.Sprintf("%02d%02d", so.CreateDate.Month(), so.CreateDate.Day())
+		sret = fmt.Sprintf("%s,{\"key\":\"%s\",\"value\":\"%d\"}", sret, ts, dm)
+	}
+
+	so = sv[0]
+	ts = fmt.Sprintf("%02d%02d", so.CreateDate.Month(), so.CreateDate.Day())
+	dm = int(math.Round(float64(so.MarketCap / 100)))
+	sret = fmt.Sprintf("%s,{\"key\":\"%s\",\"value\":\"%d\"}]", sret, ts, dm)
+
+	return sret
+
+}
+
+func StockMarketCapJson(dt string) string {
+	LEN := 15
+	sv := QueryMarketCaps(dt) // "2018-09-01")
+	if sv == nil || len(sv) < LEN {
+		return ""
+	}
+
+	ilen := len(sv)
+	step := ilen / LEN
+	sret := "["
+	so := sv[0]
+	ts := fmt.Sprintf("%02d%02d", so.Date.Month(), so.Date.Day())
+	dm := int(math.Round(float64(so.SumMarket / 100)))
+	sret = fmt.Sprintf("[{\"key\":\"%s\",\"value\":\"%d\"}", ts, dm)
+
+	for j := 1; j < LEN; j++ {
+		so := sv[j*step]
+		dm := int(math.Round(float64(so.SumMarket / 100)))
+		ts := fmt.Sprintf("%02d%02d", so.Date.Month(), so.Date.Day())
+		sret = fmt.Sprintf("%s,{\"key\":\"%s\",\"value\":\"%d\"}", sret, ts, dm)
+	}
+
+	so = sv[ilen-1]
+	ts = fmt.Sprintf("%02d%02d", so.Date.Month(), so.Date.Day())
+	dm = int(math.Round(float64(so.SumMarket / 100)))
+	sret = fmt.Sprintf("%s,{\"key\":\"%s\",\"value\":\"%d\"}]", sret, ts, dm)
+
+	return sret
+
+}
+
+/*
+[1996, 22], [1997, 36], [1998, 37], [1999, 45], [2000, 50], [2001, 55], [2002, 61], [2003, 61], [2004, 62], [2005, 66], [2006, 73]
+*/
 func (r Stock) TString() string {
 	return fmt.Sprintf("%d-%02d-%02d", r.CreateDate.Year(), r.CreateDate.Month(), r.CreateDate.Day())
 }

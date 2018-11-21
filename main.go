@@ -33,11 +33,12 @@ func main() {
 	logs.SetLogFuncCallDepth(3)
 	//	logs.SetLevel(logs.LevelError)
 
-	http.HandleFunc("/", firstPage)  //设置访问的路由
-	http.HandleFunc("/send", send)   //设置访问的路由
-	http.HandleFunc("/query", query) //设置访问的路由
-	http.HandleFunc("/stock", stock) //设置访问的路由
-	http.HandleFunc("/help", help)   //设置访问的路由
+	http.HandleFunc("/", firstPage)    //设置访问的路由
+	http.HandleFunc("/send", send)     //设置访问的路由
+	http.HandleFunc("/query", query)   //设置访问的路由
+	http.HandleFunc("/stock", stock)   //设置访问的路由
+	http.HandleFunc("/help", help)     //设置访问的路由
+	http.HandleFunc("/jsonp", jsonApi) //设置访问的路由
 
 	scheduler := gocron.NewScheduler()
 
@@ -271,6 +272,35 @@ func help(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jsonApi(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		r.ParseForm()
+		if n, ok2 := r.Form[".scrumb"]; ok2 {
+			scrum_new := scrumbCreater("send")
+			if scrum_new == n[0] {
+				////
+			}
+		}
+		rets := ""
+		if f, ok2 := r.Form["func"]; ok2 {
+			p := "BABA"
+			if p0, ok2 := r.Form["para"]; ok2 {
+				p = p0[0]
+			}
+			fc := strings.ToUpper(f[0])
+			switch fc {
+			case "STOCK":
+				rets = libs.StockLineJson(p)
+			case "STOCKSUM":
+				rets = libs.StockMarketCapJson("2017-09-01")
+			}
+		}
+		fmt.Fprintf(w, rets)
+	} else {
+		fmt.Fprintf(w, "Nothing to do!")
+	}
+}
+
 /*
 
  通过plugin加载.so的方式。
@@ -324,14 +354,15 @@ func stockPing() {
 	if tn.Weekday() == time.Monday || tn.Weekday() == time.Sunday {
 		return
 	}
-
-	libs.CrawlStocksJob()
-	i := rand.Intn(100)
-	if i%2 == 0 {
-		o, _ := libs.LastStock("baba")
-		dingtalker := libs.NewDingtalker()
-		dingtalker.SendChatTextMessage(o.String())
-	}
+	go func() {
+		libs.CrawlStocksJob()
+		i := rand.Intn(100)
+		if i%2 == 0 {
+			o, _ := libs.LastStock("baba")
+			dingtalker := libs.NewDingtalker()
+			dingtalker.SendChatTextMessage(o.String())
+		}
+	}()
 }
 
 func crawMovieJob() {
@@ -339,5 +370,11 @@ func crawMovieJob() {
 		libs.CrawlMovieJob()
 		dingtalker := libs.NewDingtalker()
 		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "http://47.105.107.171/sun.png", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报!")
+
+		tn := time.Now().UTC().Add(8 * time.Hour)
+		if tn.Weekday() == time.Monday || tn.Weekday() == time.Sunday {
+			return
+		}
+		libs.CrawlStocksJob()
 	}()
 }
