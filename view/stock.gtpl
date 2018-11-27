@@ -25,9 +25,10 @@
 BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB
 </div>
 <script type="text/javascript">
-
+var scr= {{ (index . 0).Scrumb }} ;
+var service = 'http://47.105.107.171/jsonp?func=stock&para=baba&.scrumb='+ scr;
 var request = new XMLHttpRequest();
- request.open('GET', 'http://47.105.107.171/jsonp?func=stock&para=baba', true);
+ request.open('GET', service, true);  //  'http://47.105.107.171/jsonp?func=stock&para=baba', true);
  request.onload = function () {
 	 // Begin accessing JSON data here
 	 var data = JSON.parse(this.response);

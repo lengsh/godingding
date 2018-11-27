@@ -237,3 +237,10 @@ func (r Stock) String() string {
 	return fmt.Sprintln("代码：", r.Name, "\n时间：", t, "\n最高价：", r.HighPrice, "\n最低价：", r.LowPrice, "\n开盘价：", r.StartPrice, "\n当前价：", r.EndPrice, "\n成交额：", r.TradeFounds, "亿\n成交量：", r.TradeStock, "万\n市值：", r.MarketCap, "亿")
 
 }
+func (r Stock) Scrumb() string {
+	return CreateScrumb("jsonapi")
+	//	return s
+}
+func (r StockSum) Scrumb() string {
+	return CreateScrumb("jsonapi")
+}

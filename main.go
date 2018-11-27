@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"github.com/astaxie/beego/logs"
@@ -64,17 +63,6 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
-}
-func scrumbCreater(s string) string {
-	secs := time.Now().Unix()
-	pnum := secs / 60
-	str := fmt.Sprintf("%s%d Scrumb secret keY", s, pnum)
-	h := md5.New() // 计算MD5散列，引入crypto/md5 并使用 md5.New()方法。
-	h.Write([]byte(str))
-	bs := h.Sum(nil)
-	//	log.Println(pnum)
-	//	log.Println(fmt.Sprintf("%x", bs))
-	return fmt.Sprintf("%x", bs)
 }
 
 func queryStock(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +135,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		if m, ok := r.Form["message"]; ok {
 			if n, ok2 := r.Form[".scrumb"]; ok2 {
-				scrum_new := scrumbCreater("send")
+				scrum_new := libs.CreateScrumb("send")
 				if scrum_new == n[0] {
 					dingtalker := libs.NewDingtalker()
 					sm := m[0] // template.HTMLEscapeString(m[0])
@@ -156,7 +144,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	scr := scrumbCreater("send")
+	scr := libs.CreateScrumb("send")
 	var msg Msg = Msg{"", scr}
 	t, _ := template.ParseFiles("view/send.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, msg)
@@ -276,28 +264,31 @@ func jsonApi(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		r.ParseForm()
 		if n, ok2 := r.Form[".scrumb"]; ok2 {
-			scrum_new := scrumbCreater("send")
+			scrum_new := libs.CreateScrumb("jsonapi")
 			if scrum_new == n[0] {
-				////
+				rets := ""
+				if f, ok2 := r.Form["func"]; ok2 {
+					p := "BABA"
+					if p0, ok2 := r.Form["para"]; ok2 {
+						p = p0[0]
+					}
+					fc := strings.ToUpper(f[0])
+					switch fc {
+					case "STOCK":
+						rets = libs.StockLineJson(p)
+					case "STOCKSUM":
+						rets = libs.StockMarketCapJson("2017-09-01")
+					}
+				}
+				fmt.Fprintf(w, rets)
+			} else {
+				fmt.Fprintf(w, "Error invoker, Nothing to do!")
 			}
+		} else {
+			fmt.Fprintf(w, "Error invoke, no privilate to read data!")
 		}
-		rets := ""
-		if f, ok2 := r.Form["func"]; ok2 {
-			p := "BABA"
-			if p0, ok2 := r.Form["para"]; ok2 {
-				p = p0[0]
-			}
-			fc := strings.ToUpper(f[0])
-			switch fc {
-			case "STOCK":
-				rets = libs.StockLineJson(p)
-			case "STOCKSUM":
-				rets = libs.StockMarketCapJson("2017-09-01")
-			}
-		}
-		fmt.Fprintf(w, rets)
 	} else {
-		fmt.Fprintf(w, "Nothing to do!")
+		fmt.Fprintf(w, "Error invoke, no GET parameter !")
 	}
 }
 
