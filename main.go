@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/jasonlvhit/gocron"
@@ -11,9 +13,16 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
+)
+
+var ( // main operation modes
+	port = flag.Int("port", 8080, "http server listen port.")
 )
 
 func init() {
@@ -25,7 +34,20 @@ type Msg struct {
 	Scrumb  string
 }
 
+func usage() {
+	// Fprintf allows us to print to a specifed file handle or stream
+	fmt.Fprintf(os.Stderr, "Usage: %s [-flag xyz]\n", os.Args[0])
+	flag.PrintDefaults()
+}
+
 func main() {
+
+	flag.Usage = usage
+	flag.Parse()
+	// There is also a mandatory non-flag arguments
+	if len(os.Args) < 2 {
+		usage()
+	}
 
 	logs.SetLogger(logs.AdapterFile, `{"filename":"./log/godingding.log","maxlines":10000,"maxsize":102400,"daily":true,"maxdays":2}`)
 	logs.EnableFuncCallDepth(true)
@@ -38,6 +60,8 @@ func main() {
 	http.HandleFunc("/stock", stock)   //设置访问的路由
 	http.HandleFunc("/help", help)     //设置访问的路由
 	http.HandleFunc("/jsonp", jsonApi) //设置访问的路由
+
+	http.Handle("/docs/", http.StripPrefix("/docs/", http.FileServer(http.Dir("/usr/share/nginx/html/doc"))))
 
 	scheduler := gocron.NewScheduler()
 
@@ -59,10 +83,56 @@ func main() {
 	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
 
-	err := http.ListenAndServe(":8081", nil) //设置监听的端口
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+	sport := fmt.Sprintf(":%d", *port)
+	fmt.Println("http server listen to port:", *port)
+
+	s := &http.Server{
+		Addr:         sport,
+		Handler:      http.DefaultServeMux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		//      MaxHeaderBytes: 1 << 20,
 	}
+
+	go func() {
+		if err := s.ListenAndServe(); err != nil {
+			//			log.Println(err)
+			log.Fatal("ListenAndServe: ", err)
+		}
+	}()
+
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	//    signal.Notify(ch, os.Interrupt)
+
+	// Block until we receive our signal.
+	// Handle SIGINT and SIGTERM.
+	<-ch
+	//  log.Println(<-ch)
+	// Stop the service gracefully.
+	// log.Println(s.Shutdown(nil))
+	// Wait gorotine print shutdown message
+
+	wait := time.Second * 5
+	ctx, cancel := context.WithTimeout(context.Background(), wait)
+	defer cancel()
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	s.Shutdown(ctx)
+	// Optionally, you could run srv.Shutdown in a goroutine and block on
+	// <-ctx.Done() if your application should wait for other services
+	// to finalize based on context cancellation.
+	log.Println("graceful shutdown -->done!")
+	os.Exit(0)
+
+	/*
+		err := http.ListenAndServe(":8081", nil) //设置监听的端口
+		if err != nil {
+			log.Fatal("ListenAndServe: ", err)
+		} */
 }
 
 func queryStock(w http.ResponseWriter, r *http.Request) {
