@@ -83,11 +83,11 @@ func main() {
 	// scheduler.Every(1).Hour().Do(crawJob)
 	scheduler.Start()
 
-	sport := fmt.Sprintf(":%d", *port)
+	ports := fmt.Sprintf(":%d", *port)
 	fmt.Println("http server listen to port:", *port)
 
 	s := &http.Server{
-		Addr:         sport,
+		Addr:         ports,
 		Handler:      http.DefaultServeMux,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 20 * time.Second,
@@ -140,6 +140,18 @@ func queryStock(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/stock.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
+		logs.Error(err.Error())
+	}
+}
+
+func resouReport(w http.ResponseWriter, r *http.Request) {
+
+	qy := libs.GrabToutiaoProcess()
+
+	t, _ := template.ParseFiles("view/resou.gtpl", "view/header.gtpl", "view/footer.gtpl")
+	err := t.Execute(w, qy)
+	if err != nil {
+		logs.Debug(err.Error())
 		logs.Error(err.Error())
 	}
 }
@@ -235,10 +247,14 @@ func query(w http.ResponseWriter, r *http.Request) {
 				key = 2
 			} else if m[0] == "report" {
 				key = 3
+			} else if m[0] == "resou" {
+				key = 4
 			}
 		}
 	}
 	switch key {
+	case 4:
+		resouReport(w, r)
 	case 3:
 		movieReport(w, r)
 	case 2:
