@@ -9,6 +9,7 @@ import (
 )
 
 type TouTiao struct {
+	Id      int
 	Words   string
 	Company string
 	Rate    int
@@ -57,6 +58,7 @@ func (r *GoCrawler) crawlWeiboReSou() ([]TouTiao, bool) {
 		sv := strings.Split(src, "\n")
 		if len(sv) > 10 {
 			idx := 0
+			inum := 1
 			for _, s := range sv {
 				idx++
 				if idx < 3 {
@@ -75,7 +77,8 @@ func (r *GoCrawler) crawlWeiboReSou() ([]TouTiao, bool) {
 						//	fmt.Println(ssv[0], sname, " Hot=", ssv[itm-2])
 						value := 0
 						value, _ = strconv.Atoi(ssv[itm-2])
-						ti := TouTiao{sname, "WEIBO", value}
+						ti := TouTiao{inum, sname, "WEIBO", value}
+						inum++
 						retv = append(retv, ti)
 						if len(retv) == 30 {
 							break
@@ -91,7 +94,8 @@ func (r *GoCrawler) crawlWeiboReSou() ([]TouTiao, bool) {
 						//	fmt.Println(ssv[0], sname, " Hot=", ssv[itm-1])
 						value := 0
 						value, _ = strconv.Atoi(ssv[itm-1])
-						ti := TouTiao{sname, "WEIBO", value}
+						ti := TouTiao{inum, sname, "WEIBO", value}
+						inum++
 						retv = append(retv, ti)
 						if len(retv) == 30 {
 							break
@@ -129,6 +133,7 @@ func (r *GoCrawler) crawlBaiduReSou() ([]TouTiao, bool) {
 		return nil, false // ""
 	} else {
 		retv := []TouTiao{}
+		inum := 1
 		s, _ := melem.Text()
 		sv := strings.Split(s, "\n")
 		if len(sv) > 200 {
@@ -138,23 +143,23 @@ func (r *GoCrawler) crawlBaiduReSou() ([]TouTiao, bool) {
 
 			value := 0
 			value, _ = strconv.Atoi(sv[4])
-			ti := TouTiao{sv[2], "BAIDU", value}
+			ti := TouTiao{inum, sv[2], "BAIDU", value}
 			retv = append(retv, ti)
-
+			inum++
 			value, _ = strconv.Atoi(sv[10])
-			ti = TouTiao{sv[8], "BAIDU", value}
+			ti = TouTiao{inum, sv[8], "BAIDU", value}
 			retv = append(retv, ti)
-
+			inum++
 			value, _ = strconv.Atoi(sv[16])
-			ti = TouTiao{sv[14], "BAIDU", value}
+			ti = TouTiao{inum, sv[14], "BAIDU", value}
 			retv = append(retv, ti)
-
+			inum++
 			for i := 0; i < 27; i++ {
 				//			fmt.Println(sv[19+i*4], ":", sv[20+i*4], ",", sv[22+i*4])
 				value, _ = strconv.Atoi(sv[22+i*4])
-				ti = TouTiao{sv[20+i*4], "BAIDU", value}
+				ti = TouTiao{inum, sv[20+i*4], "BAIDU", value}
 				retv = append(retv, ti)
-
+				inum++
 			}
 		}
 		return retv, true
@@ -184,15 +189,16 @@ func (r *GoCrawler) crawlToutiaoReSou() ([]TouTiao, bool) {
 		return nil, false //  ""
 	} else {
 		retv := []TouTiao{}
+		inum := 1
 		s, _ := melem.Text()
 		sv := strings.Split(s, "\n")
 		if len(sv) == 60 {
 			for i := 0; i < 30; i++ {
 				// fmt.Println(sv[i*2], ":", sv[i*2+1])
 				value := 0
-				ti := TouTiao{sv[i*2+1], "TOUTIAO", value}
+				ti := TouTiao{inum, sv[i*2+1], "TOUTIAO", value}
 				retv = append(retv, ti)
-
+				inum++
 			}
 		}
 		return retv, true

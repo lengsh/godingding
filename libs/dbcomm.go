@@ -12,6 +12,14 @@ import (
 // Model Struct
 // https://beego.me/docs/mvc/model/models.md#%E6%A8%A1%E5%9E%8B%E5%AD%97%E6%AE%B5%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%AF%B9%E5%BA%94
 
+type Kvstore struct {
+	Id       int
+	Domain   string    `orm:"size(12); index"`
+	Kkey     string    `orm:"size(64); index"`
+	Vvalue   string    `orm:"type(text)"`
+	Modetime time.Time `orm:"type(datetime);index"` // (datetime); index"`
+}
+
 type Stock struct {
 	Name        string    `orm:"size(20); index"`
 	HighPrice   float32   `orm: "default(0)"`
@@ -52,7 +60,6 @@ func init() {
 	orm.RegisterDataBase("default", "mysql", "lengsh:hsgnel@/youku?charset=utf8")
 	//("mysql", "user:password@/dbname")
 	// 注册定义的 model
-
-	orm.RegisterModel(new(Movie), new(Stockorm), new(Mylog))
+	orm.RegisterModel(new(Movie), new(Stockorm), new(Kvstore), new(Mylog))
 	orm.RunSyncdb("default", false, true)
 }

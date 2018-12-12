@@ -80,7 +80,7 @@ func main() {
 	job4 := scheduler.Every(1).Day().At("20:01")
 	job4.Do(crawMovieJob)
 	//scheduler.Every(1).Day().Do(crawJob)
-	// scheduler.Every(1).Hour().Do(crawJob)
+	scheduler.Every(1).Hour().Do(crawResouJob)
 	scheduler.Start()
 
 	ports := fmt.Sprintf(":%d", *port)
@@ -145,8 +145,23 @@ func queryStock(w http.ResponseWriter, r *http.Request) {
 }
 
 func resouReport(w http.ResponseWriter, r *http.Request) {
-
-	qy := libs.GrabToutiaoProcess()
+	var qy []libs.TouTiao
+	key := time.Now().Format("2006-01-02")
+	if value, ret := libs.GetKVStore("RESOU", key); ret {
+		err := json.Unmarshal([]byte(value), &qy)
+		if err != nil {
+			logs.Error("Unmarshal failed, ", err)
+			qy = nil
+		}
+	} else {
+		go func() {
+			qy := libs.GrabToutiaoProcess()
+			data, err := json.Marshal(qy)
+			if err == nil {
+				libs.SetKVStore("RESOU", key, string(data))
+			}
+		}()
+	}
 
 	t, _ := template.ParseFiles("view/resou.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, qy)
@@ -453,5 +468,18 @@ func crawMovieJob() {
 			return
 		}
 		libs.CrawlStocksJob()
+	}()
+}
+
+func crawResouJob() {
+	go func() {
+		key := time.Now().Format("2006-01-02")
+		qy := libs.GrabToutiaoProcess()
+		data, err := json.Marshal(qy)
+		if err == nil {
+			libs.SetKVStore("RESOU", key, string(data))
+		} else {
+			logs.Error("Error to Grab Resou !!!!!!!!!")
+		}
 	}()
 }
