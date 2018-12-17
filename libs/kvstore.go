@@ -34,6 +34,32 @@ func GetKVStore(domain string, key string) (string, bool) {
 	}
 }
 
+func (r TouTiao) UpdateTime() string {
+	key := time.Now().Format("2006-01-02")
+	if t, b := GetKVStoreTime("RESOU", key); b {
+		return t.Format("2006-01-02 15:04:05")
+	}
+	return ""
+}
+
+func GetKVStoreTime(domain string, key string) (time.Time, bool) {
+	o := orm.NewOrm()
+	var rs orm.RawSeter
+	sql := fmt.Sprintf("SELECT * FROM kvstore where domain='%s' AND kkey='%s'", domain, key)
+	logs.Debug(sql)
+	rs = o.Raw(sql)
+	var sk []Kvstore
+	num, err := rs.QueryRows(&sk)
+
+	if err != nil || num < 1 {
+		logs.Error(err)
+		t := time.Now().UTC().Add(8 * time.Hour)
+		return t, false
+	} else {
+		return sk[0].Modetime, true
+	}
+}
+
 func SetKVStore(domain string, key string, value string) bool {
 	o := orm.NewOrm()
 	var rs orm.RawSeter

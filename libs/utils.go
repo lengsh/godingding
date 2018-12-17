@@ -3,8 +3,12 @@ package libs
 import (
 	"crypto/md5"
 	"fmt"
+	"github.com/astaxie/beego/logs"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -34,4 +38,41 @@ func AuthenticationIP(req *http.Request) (error, bool) {
 		return err, false
 	}
 	return nil, true
+}
+
+func PullwordGet(s string, param1 int, param2 int, level float64) (map[string]float64, bool) {
+	retv := map[string]float64{}
+	url := fmt.Sprintf("http://api.pullword.com/get.php?source=%s&param1=%d&param2=%d", s, param1, param2)
+	resp, err := http.Get(url)
+	if err != nil {
+		logs.Debug(err)
+		return retv, false
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		logs.Debug(err)
+		return retv, false
+	}
+	sv := strings.Split(string(body), "\r\n")
+	for _, v := range sv {
+		if len(v) > 3 {
+			ws := strings.Split(v, ":")
+			if len(ws) == 2 {
+				word := ws[0]
+				prob, err := strconv.ParseFloat(ws[1], 32)
+				if err != nil {
+					logs.Debug(err)
+					prob = 0
+				}
+
+				if prob > level {
+					retv[word] = prob
+					//fmt.Println(word, ":", prob, "; ", len(word))
+				}
+			}
+		}
+	}
+	return retv, true
 }

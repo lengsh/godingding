@@ -6,6 +6,7 @@ import (
 	"github.com/tebeka/selenium"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type TouTiao struct {
@@ -204,4 +205,86 @@ func (r *GoCrawler) crawlToutiaoReSou() ([]TouTiao, bool) {
 		return retv, true
 	}
 	return nil, false
+}
+
+func FetchKeyWords() string {
+	key := time.Now().Format("2006-01-02") + ":key"
+	if v, b := GetKVStore("RESOU", key); b {
+		//	fmt.Println(v)
+		return v
+	} else {
+		return ""
+	}
+}
+
+func PickKeyWords(tts []TouTiao) {
+	fLEVEL := 0.88
+	s1, s2, s3 := "", "", ""
+	for _, v := range tts {
+		if v.Company == "BAIDU" {
+			s1 = s1 + ";" + v.Words
+		}
+		if v.Company == "TOUTIAO" {
+			s2 = s2 + ";" + v.Words
+		}
+		if v.Company == "WEIBO" {
+			s3 = s3 + ";" + v.Words
+		}
+	}
+	/*
+	  1. get keyword by weibo
+	  2. get keyword by toutiao
+	  3. get keyword by baidu
+	  4. merge and pick  [hot & big]
+	*/
+	retv := map[string]float64{}
+	//	retv, retv1 := map[string]float64{}
+	if retv1, b := PullwordGet(s1, 0, 1, fLEVEL); b {
+		// merge to retv
+		for k1, v1 := range retv1 {
+			//	fmt.Println(k1, ":", v1)
+			retv[k1] = v1
+		}
+	}
+
+	if retv1, b := PullwordGet(s2, 0, 1, fLEVEL); b {
+		// merge to retv
+		for k1, v1 := range retv1 {
+			//	fmt.Println(k1, ":", v1)
+			if _, b := retv[k1]; !b {
+				retv[k1] = v1
+			} else {
+				retv[k1] += v1
+			}
+		}
+	}
+
+	if retv1, b := PullwordGet(s3, 0, 1, fLEVEL); b {
+		// mergo to retv
+		for k1, v1 := range retv1 {
+			//	fmt.Println(k1, ":", v1)
+			if _, b := retv[k1]; !b {
+				retv[k1] = v1
+			} else {
+				retv[k1] += v1
+			}
+		}
+	}
+	///      print
+	words := ""
+	for k1, v1 := range retv {
+		//	if len(k1) > 6 || v1 >= 2 {
+		if len(k1) > 6 || v1 >= 3 {
+			if len(words) == 0 {
+				words = k1
+			} else {
+				words = words + "、" + k1
+			}
+		}
+	}
+	// fmt.Println(words)
+	// save to KVStore
+	key := time.Now().Format("2006-01-02") + ":key"
+	SetKVStore("RESOU", key, words)
+
 }

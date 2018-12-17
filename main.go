@@ -22,7 +22,7 @@ import (
 )
 
 var ( // main operation modes
-	port = flag.Int("port", 8080, "http server listen port.")
+	port = flag.Int("port", 8081, "http server listen port.")
 )
 
 func init() {
@@ -147,6 +147,7 @@ func queryStock(w http.ResponseWriter, r *http.Request) {
 func resouReport(w http.ResponseWriter, r *http.Request) {
 	var qy []libs.TouTiao
 	key := time.Now().Format("2006-01-02")
+
 	if value, ret := libs.GetKVStore("RESOU", key); ret {
 		err := json.Unmarshal([]byte(value), &qy)
 		if err != nil {
@@ -162,8 +163,17 @@ func resouReport(w http.ResponseWriter, r *http.Request) {
 			}
 		}()
 	}
+	words := "<h2>" + libs.FetchKeyWords() + "</h2>"
+	t, _ := template.New("resou.gtpl").Funcs(template.FuncMap{
+		"ResouKeyWordsA": func() template.HTML {
+			return template.HTML(words)
+		},
+		"ResouKeyWordsB": func() template.HTML {
+			return template.HTML("<h4>HelloB </h4>")
+		},
+	}).ParseFiles("view/resou.gtpl", "view/header.gtpl", "view/footer.gtpl")
 
-	t, _ := template.ParseFiles("view/resou.gtpl", "view/header.gtpl", "view/footer.gtpl")
+	//	t, _ := template.ParseFiles("view/resou.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, qy)
 	if err != nil {
 		logs.Debug(err.Error())
@@ -474,8 +484,9 @@ func crawMovieJob() {
 func crawResouJob() {
 	go func() {
 		key := time.Now().Format("2006-01-02")
-		qy := libs.GrabToutiaoProcess()
-		data, err := json.Marshal(qy)
+		tt := libs.GrabToutiaoProcess()
+		libs.PickKeyWords(tt)
+		data, err := json.Marshal(tt)
 		if err == nil {
 			libs.SetKVStore("RESOU", key, string(data))
 		} else {
