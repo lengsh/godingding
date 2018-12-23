@@ -1,0 +1,31 @@
+{
+	"database": {
+		"Database"     : "you",
+		"User"	       : "le",
+		"Password"     : "he",
+		"Charset"      : "utf8mb4",  /*要支持emoji的话，填 utf8mb4 */
+		"Host"         : "127.0.0.1",/*数据库ip*/
+		"Port"         : 3306,       /*数据库端口*/
+		"MaxIdleConns" : 5,          /*空闲时最大的连接数*/
+		"MaxOpenConns" : 10          /*最大的连接数*/
+	},
+	"server": {
+		"Port"                : 8081,                 /*go监听的端口*/
+		"LogDir"              : "./log/", /*日志文件所在的目录，如果不设的话，默认在项目目录下*/          
+		"LogFile"             :"godingding.log",
+		"LogMaxLines"         : 10000,
+		"LogMaxSize"          : 102400,
+		"LogDaily"            : true,
+		"LogMaxDays"          : 2,
+		"LogEnableDepth"      : true,
+		"LogDepth"            : 3,
+		"TokenSecret"         : "Jxa26iOirBiYX8iLCJuYm5iy", /*TokenSecret，请修改*/
+		"TokenMaxAge"         : 86400, /*token多久过期，单位秒*/
+		"PassSalt"            : "xrjoN1qR",           /*用户密码加盐，请修改*/
+		"DcorpSecret"         : "2uKEYhxff6uGj924NEdrboCivL_Gry",
+		"DcorpId"             : "dinf4657eb6378f",
+		"DacToken"            : "16770df2a74cb",
+		"DchatId"             : "chae99d8c585e" 
+	}
+}
+

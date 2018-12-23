@@ -81,12 +81,12 @@ func CrawlStockJob(sk string) string {
 func CrawlCarLimitJob() string {
 	r := NewCrawler("IOS")
 	defer r.ReleaseCrawler()
-
+	oil, _ := r.crawlChemcp()
 	s := r.crawlCarLimitFromBaiduH5()
 	if strings.Contains(s, "error") {
-		return r.crawlCarLimitFromSogouH5()
+		return r.crawlCarLimitFromSogouH5() + ";\n" + oil
 	}
-	return s
+	return s + ";\n" + oil
 }
 
 func CrawlMovieJob() {
@@ -686,7 +686,8 @@ func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
 
 		idx := strings.Index(chengjiao, "万")
 		if len(chengjiao) > idx {
-			f, _ = strconv.ParseFloat(s[0:idx], 32)
+			// f, _ = strconv.ParseFloat(s[0:idx], 32)
+			f, _ = strconv.ParseFloat(chengjiao[0:idx], 32)
 			mo.TradeStock = float32(f) * 10000
 		}
 
@@ -1085,4 +1086,43 @@ func (r *GoCrawler) crawlCarLimitFromBaiduH5() string {
 		return "2 error"
 	}
 	return rets
+}
+
+func (r *GoCrawler) crawlChemcp() (string, bool) {
+	url := "http://youjia.chemcp.com/beijing/"
+	r.webDriver.AddCookie(&selenium.Cookie{
+		Name:  "a",
+		Value: "www",
+	})
+	err := r.webDriver.Get(url)
+	if err != nil {
+		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
+		return "0 error", false //"0 Failed to load page"
+	}
+
+	//	source,_ := r.webDriver.PageSource()
+	//	fmt.Println(source)
+	//	return "success",true
+
+	melem, err := r.webDriver.FindElement(selenium.ByClassName, "content")
+	if err != nil {
+		logs.Error(err)
+		return "1 error", false
+	} else {
+
+		melems, err := melem.FindElements(selenium.ByTagName, "table")
+		if err != nil {
+			logs.Error(err)
+			return "4 error", false
+		}
+		for _, el := range melems {
+			src, _ := el.Text()
+			sv := strings.Split(src, "\n")
+			if len(sv) == 4 {
+				return sv[1] + "\n" + sv[2], true
+			}
+			return "5 error", false
+		}
+	}
+	return "3 error", false
 }

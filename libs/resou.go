@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/tebeka/selenium"
+	"math/rand"
 	"strconv"
 	"strings"
 	"time"
@@ -134,34 +135,48 @@ func (r *GoCrawler) crawlBaiduReSou() ([]TouTiao, bool) {
 		return nil, false // ""
 	} else {
 		retv := []TouTiao{}
-		inum := 1
+		// inum := 1
 		s, _ := melem.Text()
 		sv := strings.Split(s, "\n")
 		if len(sv) > 200 {
-			//		fmt.Println(sv[1], ":", sv[2], ",", sv[4])
-			//		fmt.Println(sv[7], ":", sv[8], ",", sv[10])
-			//		fmt.Println(sv[13], ":", sv[14], ",", sv[16])
 
-			value := 0
-			value, _ = strconv.Atoi(sv[4])
-			ti := TouTiao{inum, sv[2], "BAIDU", value}
-			retv = append(retv, ti)
-			inum++
-			value, _ = strconv.Atoi(sv[10])
-			ti = TouTiao{inum, sv[8], "BAIDU", value}
-			retv = append(retv, ti)
-			inum++
-			value, _ = strconv.Atoi(sv[16])
-			ti = TouTiao{inum, sv[14], "BAIDU", value}
-			retv = append(retv, ti)
-			inum++
-			for i := 0; i < 27; i++ {
-				//			fmt.Println(sv[19+i*4], ":", sv[20+i*4], ",", sv[22+i*4])
-				value, _ = strconv.Atoi(sv[22+i*4])
-				ti = TouTiao{inum, sv[20+i*4], "BAIDU", value}
+			idnow := 0
+			for idx := 1; idx <= 30; idx++ {
+				ids := fmt.Sprintf("%d", idx)
+				for id := idnow; id < len(sv); id++ {
+					if ids == sv[id] {
+						value, _ := strconv.Atoi(sv[id+3])
+						ti := TouTiao{idx, sv[id+1], "BAIDU", value}
+						retv = append(retv, ti)
+						idnow = id + 3
+						break
+					}
+				}
+
+			}
+			/*
+				value := 0
+				value, _ = strconv.Atoi(sv[4])
+				ti := TouTiao{inum, sv[2], "BAIDU", value}
 				retv = append(retv, ti)
 				inum++
-			}
+				value, _ = strconv.Atoi(sv[10])
+				ti = TouTiao{inum, sv[8], "BAIDU", value}
+				retv = append(retv, ti)
+				inum++
+				value, _ = strconv.Atoi(sv[16])
+				ti = TouTiao{inum, sv[14], "BAIDU", value}
+				retv = append(retv, ti)
+				inum++
+				for i := 0; i < 27; i++ {
+					//			fmt.Println(sv[19+i*4], ":", sv[20+i*4], ",", sv[22+i*4])
+					value, _ = strconv.Atoi(sv[22+i*4])
+					ti = TouTiao{inum, sv[20+i*4], "BAIDU", value}
+					retv = append(retv, ti)
+					inum++
+				}
+			*/
+
 		}
 		return retv, true
 	}
@@ -272,13 +287,31 @@ func PickKeyWords(tts []TouTiao) {
 	}
 	///      print
 	words := ""
+	rand.Seed(time.Now().UnixNano())
+
 	for k1, v1 := range retv {
 		//	if len(k1) > 6 || v1 >= 2 {
 		if len(k1) > 6 || v1 >= 3 {
+			x := rand.Intn(6)
+			spanclass := ""
+			switch x {
+			case 0:
+				spanclass = "tipsA"
+			case 1:
+				spanclass = "tipsB"
+			case 2:
+				spanclass = "tipsC"
+			case 3:
+				spanclass = "tipsD"
+			case 4:
+				spanclass = "tipsE"
+			case 5:
+				spanclass = "tipsF"
+			}
 			if len(words) == 0 {
-				words = k1
+				words = "<span class=\"" + spanclass + "\">" + k1 + "</span>"
 			} else {
-				words = words + "、" + k1
+				words = words + "<span class=\"" + spanclass + "\">" + k1 + "</span>"
 			}
 		}
 	}

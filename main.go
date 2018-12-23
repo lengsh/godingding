@@ -22,7 +22,7 @@ import (
 )
 
 var ( // main operation modes
-	port = flag.Int("port", 8081, "http server listen port.")
+	confFile = flag.String("config", "./config.json", "godingding configure file.")
 )
 
 func init() {
@@ -40,8 +40,7 @@ func usage() {
 	flag.PrintDefaults()
 }
 
-func main() {
-
+func runInit() {
 	flag.Usage = usage
 	flag.Parse()
 	// There is also a mandatory non-flag arguments
@@ -49,11 +48,23 @@ func main() {
 		usage()
 	}
 
-	logs.SetLogger(logs.AdapterFile, `{"filename":"./log/godingding.log","maxlines":10000,"maxsize":102400,"daily":true,"maxdays":2}`)
-	logs.EnableFuncCallDepth(true)
-	logs.SetLogFuncCallDepth(3)
-	//	logs.SetLevel(logs.LevelError)
+	libs.ConfigInit(*confFile)
+	libs.DBinit(libs.DBConfig.User, libs.DBConfig.Password, libs.DBConfig.Database, libs.DBConfig.Charset)
 
+	sLogDaily := "false"
+	if libs.ServerConfig.LogDaily {
+		sLogDaily = "true"
+	}
+	sl := fmt.Sprintf("{\"filename\":\"%s\",\"maxlines\":%d,\"maxsize\":%d,\"daily\":%s,\"maxdays\":%d}", libs.ServerConfig.LogFile, libs.ServerConfig.LogMaxLines, libs.ServerConfig.LogMaxSize, sLogDaily, libs.ServerConfig.LogMaxDays)
+	// logs.SetLogger(logs.AdapterFile, `{"filename":"./log/godingding.log","maxlines":10000,"maxsize":102400,"daily":true,"maxdays":2    }`)
+	logs.SetLogger(logs.AdapterFile, sl)
+	logs.EnableFuncCallDepth(libs.ServerConfig.LogEnableDepth) //   true)
+	logs.SetLogFuncCallDepth(libs.ServerConfig.LogDepth)       // 3 )
+	//	logs.SetLevel(logs.LevelError)
+}
+
+func main() {
+	runInit()
 	http.HandleFunc("/", firstPage)    //设置访问的路由
 	http.HandleFunc("/send", send)     //设置访问的路由
 	http.HandleFunc("/query", query)   //设置访问的路由
@@ -83,11 +94,11 @@ func main() {
 	scheduler.Every(1).Hour().Do(crawResouJob)
 	scheduler.Start()
 
-	ports := fmt.Sprintf(":%d", *port)
-	fmt.Println("http server listen to port:", *port)
+	port := fmt.Sprintf(":%d", libs.ServerConfig.Port)
+	fmt.Println("http server listen to port:", port)
 
 	s := &http.Server{
-		Addr:         ports,
+		Addr:         port,
 		Handler:      http.DefaultServeMux,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 20 * time.Second,
@@ -341,6 +352,7 @@ func help(w http.ResponseWriter, r *http.Request) {
 			case "CAR LIMIT":
 				s := libs.CrawlCarLimitJob()
 				ss := fmt.Sprintf("@%s\n%s", senderNick, s)
+				fmt.Println(ss)
 				dingtalker := libs.NewDingtalker()
 				dingtalker.SendRobotTextMessage(ss)
 			case "爬股票":

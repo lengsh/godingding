@@ -53,6 +53,19 @@ type Movie struct {
 	Douban      float32 `orm: "default(0)"`
 }
 
+func DBinit(usr string, pwd string, dbname string, charset string) {
+	// 设置默认数据库
+	str := fmt.Sprintf("%s:%s@/%s?charset=%s", usr, pwd, dbname, charset)
+	fmt.Println("=========== init db  =============")
+	orm.RegisterDriver("mysql", orm.DRMySQL)
+	orm.RegisterDataBase("default", "mysql", str) //   "lesh:hel@/you?charset=utf8")
+	//("mysql", "user:password@/dbname")
+	// 注册定义的 model
+	orm.RegisterModel(new(Movie), new(Stockorm), new(Kvstore), new(Mylog))
+	orm.RunSyncdb("default", false, true)
+}
+
+/*
 func init() {
 	// 设置默认数据库
 	fmt.Println("=========== init db  =============")
@@ -63,3 +76,4 @@ func init() {
 	orm.RegisterModel(new(Movie), new(Stockorm), new(Kvstore), new(Mylog))
 	orm.RunSyncdb("default", false, true)
 }
+*/
