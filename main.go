@@ -49,7 +49,7 @@ func runInit() {
 	}
 
 	libs.ConfigInit(*confFile)
-	libs.DBinit(libs.DBConfig.User, libs.DBConfig.Password, libs.DBConfig.Database, libs.DBConfig.Charset)
+	libs.DBinit(libs.DBConfig.URL, libs.DBConfig.MaxIdleConns, libs.DBConfig.MaxOpenConns)
 
 	sLogDaily := "false"
 	if libs.ServerConfig.LogDaily {
@@ -60,7 +60,18 @@ func runInit() {
 	logs.SetLogger(logs.AdapterFile, sl)
 	logs.EnableFuncCallDepth(libs.ServerConfig.LogEnableDepth) //   true)
 	logs.SetLogFuncCallDepth(libs.ServerConfig.LogDepth)       // 3 )
-	//	logs.SetLevel(logs.LevelError)
+	switch libs.ServerConfig.LogLevel {
+	case "DEBUG":
+		logs.SetLevel(logs.LevelDebug)
+	case "ERROR":
+		logs.SetLevel(logs.LevelError)
+
+	case "WARNING":
+		logs.SetLevel(logs.LevelWarning)
+	default:
+		logs.SetLevel(logs.LevelError)
+
+	}
 }
 
 func main() {

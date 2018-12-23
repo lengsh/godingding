@@ -43,7 +43,7 @@ type dBConfig struct {
 	Charset      string
 	MaxIdleConns int
 	MaxOpenConns int
-	//  URL string
+	URL          string
 }
 
 // DBConfig 数据库相关配置
@@ -51,8 +51,8 @@ var DBConfig dBConfig
 
 func initDB() {
 	SetStructByJSON(&DBConfig, jsonData["database"].(map[string]interface{}))
-	//	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local", DBConfig.User, DBConfig.Password, DBConfig.Host, DBConfig.Port, DBConfig.Database, DBConfig.Charset)
-	//	DBConfig.URL = url
+	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=Local", DBConfig.User, DBConfig.Password, DBConfig.Host, DBConfig.Port, DBConfig.Database, DBConfig.Charset)
+	DBConfig.URL = url
 }
 
 // RedisConfig redis相关配置
@@ -68,6 +68,7 @@ type serverConfig struct {
 	LogMaxDays     int
 	LogEnableDepth bool
 	LogDepth       int
+	LogLevel       string
 	TokenSecret    string
 	TokenMaxAge    int
 	PassSalt       string
