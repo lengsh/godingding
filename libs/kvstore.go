@@ -70,7 +70,7 @@ func SetKVStore(domain string, key string, value string) bool {
 	num, _ := rs.QueryRows(&sk)
 	if num >= 1 {
 		sk[0].Vvalue = value
-		sk[0].Modetime = time.Now().UTC().Add(8 * time.Hour)
+		sk[0].Modetime = time.Now().UTC() // .Add(8 * time.Hour)
 
 		if _, err := o.Update(&sk[0]); err == nil {
 			return true
@@ -79,7 +79,7 @@ func SetKVStore(domain string, key string, value string) bool {
 			return false
 		}
 	} else {
-		var ns Kvstore = Kvstore{0, domain, key, value, time.Now().UTC().Add(8 * time.Hour)}
+		var ns Kvstore = Kvstore{0, domain, key, value, time.Now().UTC()}
 		id, err := o.Insert(&ns)
 		if err != nil {
 		} else {

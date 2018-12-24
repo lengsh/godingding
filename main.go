@@ -216,7 +216,7 @@ func movieReport(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("view/report.gtpl", "view/tx.gtpl", "view/iqiyi.gtpl", "view/youku.gtpl")
 	err := t.Execute(w, qs)
 	if err != nil {
-		logs.Debug(err.Error())
+		fmt.Println(err)
 		logs.Error(err.Error())
 	}
 }

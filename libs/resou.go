@@ -38,6 +38,7 @@ func GrabToutiaoProcess() []TouTiao {
 ////////////
 
 func (r *GoCrawler) crawlWeiboReSou() ([]TouTiao, bool) {
+	recover_defer()
 	url := "https://s.weibo.com/top/summary?Refer=top_hot&topnav=1&wvr=6"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",
@@ -114,6 +115,7 @@ func (r *GoCrawler) crawlWeiboReSou() ([]TouTiao, bool) {
 }
 
 func (r *GoCrawler) crawlBaiduReSou() ([]TouTiao, bool) {
+	recover_defer()
 	url := "http://top.baidu.com/buzz?b=1&fr=20811"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",
@@ -184,6 +186,7 @@ func (r *GoCrawler) crawlBaiduReSou() ([]TouTiao, bool) {
 }
 
 func (r *GoCrawler) crawlToutiaoReSou() ([]TouTiao, bool) {
+	recover_defer()
 	url := "https://is.snssdk.com/2/wap/search/extra/hot_word_list/"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",
@@ -233,6 +236,7 @@ func FetchKeyWords() string {
 }
 
 func PickKeyWords(tts []TouTiao) {
+	recover_defer()
 	fLEVEL := 0.88
 	s1, s2, s3 := "", "", ""
 	for _, v := range tts {

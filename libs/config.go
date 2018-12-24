@@ -55,8 +55,7 @@ func initDB() {
 	DBConfig.URL = url
 }
 
-// RedisConfig redis相关配置
-
+//
 type serverConfig struct {
 	SiteName       string
 	LogDir         string

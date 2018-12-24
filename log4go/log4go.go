@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
+	//	"strconv"
 	"time"
 )
 
@@ -75,8 +75,9 @@ func NewF(fp string) *G4Log {
 		fp = wd + "/log/"
 	}
 
-	year, month, day := time.Now().Date()
-	filename := "log." + strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(day)
+	//year, month, day := time.Now().Date()
+	//filename := "log." + strconv.Itoa(year) + "-" + strconv.Itoa(int(month)) + "-" + strconv.Itoa(day)
+	filename := "log." + time.Now().Format("2006-01-02") + ".log"
 	err := os.MkdirAll(fp, 0755)
 	if err != nil {
 		panic("logpath error : " + fp + "\n")

@@ -54,13 +54,10 @@ type Movie struct {
 }
 
 func DBinit(dburl string, maxIdle int, maxConn int) {
-	//sr string, pwd string, dbname string, charset string) {
 	// 设置默认数据库
-	//	str := fmt.Sprintf("%s:%s@/%s?charset=%s", usr, pwd, dbname, charset)
 	fmt.Println("=========== init db  =============")
 	orm.RegisterDriver("mysql", orm.DRMySQL)
-	//	orm.RegisterDataBase("default", "mysql", str) //   "lesh:hel@/you?charset=utf8")
-	orm.RegisterDataBase("default", "mysql", dburl, maxIdle, maxConn) //   "lesh:hel@/you?charset=utf8")
+	orm.RegisterDataBase("default", "mysql", dburl, maxIdle, maxConn)
 
 	//("mysql", "user:password@/dbname")
 	// 注册定义的 model

@@ -205,7 +205,7 @@ func (r Movie) UpdateTime() string {
 
 func NewMylog(usr string, blog string) int {
 
-	t := time.Now().UTC().Add(8 * time.Hour)
+	t := time.Now().UTC() //.Add(8 * time.Hour)
 	var r = Mylog{User: usr, Blog: blog, Modtime: t}
 	o := orm.NewOrm()
 	id, err := o.Insert(&r)

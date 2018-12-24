@@ -12,6 +12,15 @@ import (
 	"time"
 )
 
+func recover_defer() {
+	if r := recover(); r != nil {
+		dingtalker := NewDingtalker()
+		s := fmt.Sprintf("[panic error] %s", r)
+		dingtalker.SendChatTextMessage(s)
+		logs.Error(r)
+	}
+}
+
 func CrawlStocksJob() {
 	i := 0
 	for i < 5 {
@@ -199,8 +208,8 @@ func (r *GoCrawler) ReleaseCrawler() {
 }
 
 func (r *GoCrawler) crawlIqiyiH5() {
+	defer recover_defer()
 	url := "http://m.iqiyi.com/vip/timeLine.html"
-
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
 		Value: "www",
@@ -273,6 +282,7 @@ func (r *GoCrawler) crawlIqiyiH5() {
 }
 
 func (r *GoCrawler) crawlTxH5() {
+	defer recover_defer()
 	url := "http://film.qq.com/weixin/upcoming.html"
 
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -339,7 +349,7 @@ func (r *GoCrawler) crawlTxH5() {
 
 /////////////////////
 func (r *GoCrawler) crawlYoukuH5() {
-
+	defer recover_defer()
 	url := "https://h5.vip.youku.com"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
@@ -457,6 +467,7 @@ func (r *GoCrawler) crawlYoukuH5() {
 
 ///////////////////////////////
 func (r *GoCrawler) crawlDoubanH5(mv string) float32 {
+	defer recover_defer()
 	mv = strings.TrimSpace(mv)
 	url := fmt.Sprintf("https://www.douban.com/search?cat=1002&q=%s", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -534,7 +545,9 @@ func (r *GoCrawler) crawlDoubanH5(mv string) float32 {
 
 //////////
 func (r *GoCrawler) crawlStockFrom163H5(sID string) string {
-	logs.Debug("try to crawl ", sID)
+
+	defer recover_defer()
+
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("http://quotes.money.163.com/usstock/%s.html", mv)
 
@@ -619,7 +632,7 @@ func (r *GoCrawler) crawlStockFrom163H5(sID string) string {
 		}
 	}
 
-	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+	mo.CreateDate = time.Now().UTC() //.Add(8 * time.Hour)
 	if mo.MarketCap > 0 {
 		mo.NewStock()
 	} else {
@@ -629,7 +642,8 @@ func (r *GoCrawler) crawlStockFrom163H5(sID string) string {
 }
 
 func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
-	logs.Debug("try to crawl ", sID)
+	defer recover_defer()
+
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://gupiao.baidu.com/stock/us%s.html", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -704,7 +718,7 @@ func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
 			}
 		}
 
-		mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+		mo.CreateDate = time.Now().UTC() //.Add(8 * time.Hour)
 		if mo.MarketCap > 0 {
 			mo.NewStock()
 		} else {
@@ -717,7 +731,8 @@ func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
 }
 
 func (r *GoCrawler) crawlStockFromSinaPC(sID string) string {
-	logs.Debug("try to crawl ", sID)
+	defer recover_defer()
+
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://stock.finance.sina.com.cn/usstock/quotes/%s.html", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -810,7 +825,7 @@ func (r *GoCrawler) crawlStockFromSinaPC(sID string) string {
 			}
 		}
 
-		mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+		mo.CreateDate = time.Now().UTC() //.Add(8 * time.Hour)
 		if mo.MarketCap > 0 {
 			mo.NewStock()
 		} else {
@@ -823,7 +838,8 @@ func (r *GoCrawler) crawlStockFromSinaPC(sID string) string {
 
 //////////
 func (r *GoCrawler) crawlStockFromBaiduH5(sID string) string {
-	logs.Debug("try to crawl ", sID)
+	defer recover_defer()
+
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.baidu.com/s?wd=%s&rsv_spt=1", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -885,7 +901,7 @@ func (r *GoCrawler) crawlStockFromBaiduH5(sID string) string {
 		mo.MarketCap = mo.MarketCap * 10000
 	}
 
-	mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+	mo.CreateDate = time.Now().UTC() //.Add(8 * time.Hour)
 	if mo.MarketCap > 0 {
 		mo.NewStock()
 	} else {
@@ -896,7 +912,8 @@ func (r *GoCrawler) crawlStockFromBaiduH5(sID string) string {
 
 ////////
 func (r *GoCrawler) crawlStockFromFutuPC(sID string) string {
-	logs.Debug("try to crawl ", sID)
+	defer recover_defer()
+
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -1007,7 +1024,7 @@ func (r *GoCrawler) crawlStockFromFutuPC(sID string) string {
 			if bb {
 				mo.MarketCap = mo.MarketCap * 10000
 			}
-			mo.CreateDate = time.Now().UTC().Add(8 * time.Hour)
+			mo.CreateDate = time.Now().UTC() // .Add(8 * time.Hour)
 			/////////
 			///////////
 			if mo.MarketCap > 0 {
@@ -1033,6 +1050,7 @@ RETURN:
 
 //////////////
 func (r *GoCrawler) crawlCarLimitFromSogouH5() string {
+	recover_defer()
 	url := "https://m.sogou.com/web/searchList.jsp?keyword=限行尾号&wm=3206"
 	err := r.webDriver.Get(url)
 	if err != nil {
@@ -1063,6 +1081,8 @@ func (r *GoCrawler) crawlCarLimitFromSogouH5() string {
 
 ///////////////
 func (r *GoCrawler) crawlCarLimitFromBaiduH5() string {
+	recover_defer()
+
 	url := "https://www.baidu.com/from=844b/s?word=%E5%8C%97%E4%BA%AC%E9%99%90%E5%8F%B7&sa=tb&ms=1"
 	err := r.webDriver.Get(url)
 	if err != nil {
@@ -1089,6 +1109,7 @@ func (r *GoCrawler) crawlCarLimitFromBaiduH5() string {
 }
 
 func (r *GoCrawler) crawlChemcp() (string, bool) {
+	recover_defer()
 	url := "http://youjia.chemcp.com/beijing/"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",
