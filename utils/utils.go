@@ -1,4 +1,4 @@
-package libs
+package utils
 
 import (
 	"crypto/md5"
@@ -7,10 +7,29 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func GetCaller(depth int) string {
+	_, file, line, ok := runtime.Caller(depth)
+	if !ok {
+		file = "???"
+		line = 0
+	}
+	return fmt.Sprintf("%s,%d", file, line)
+}
+
+func RecoverDefer(position string) {
+	if r := recover(); r != nil {
+		dingtalker := NewDingtalker()
+		s := fmt.Sprintf("[%s] %s", position, r)
+		dingtalker.SendChatTextMessage(s)
+		logs.Error(r)
+	}
+}
 
 func CreateScrumb(s string) string {
 	secs := time.Now().Unix()

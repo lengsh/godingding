@@ -3,6 +3,7 @@ package libs
 import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/lengsh/godingding/utils"
 	"github.com/tebeka/selenium"
 	"math/rand"
 	"strconv"
@@ -38,7 +39,7 @@ func GrabToutiaoProcess() []TouTiao {
 ////////////
 
 func (r *GoCrawler) crawlWeiboReSou() ([]TouTiao, bool) {
-	recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "https://s.weibo.com/top/summary?Refer=top_hot&topnav=1&wvr=6"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",
@@ -115,7 +116,7 @@ func (r *GoCrawler) crawlWeiboReSou() ([]TouTiao, bool) {
 }
 
 func (r *GoCrawler) crawlBaiduReSou() ([]TouTiao, bool) {
-	recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "http://top.baidu.com/buzz?b=1&fr=20811"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",
@@ -186,7 +187,7 @@ func (r *GoCrawler) crawlBaiduReSou() ([]TouTiao, bool) {
 }
 
 func (r *GoCrawler) crawlToutiaoReSou() ([]TouTiao, bool) {
-	recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "https://is.snssdk.com/2/wap/search/extra/hot_word_list/"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",
@@ -236,7 +237,7 @@ func FetchKeyWords() string {
 }
 
 func PickKeyWords(tts []TouTiao) {
-	recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	fLEVEL := 0.88
 	s1, s2, s3 := "", "", ""
 	for _, v := range tts {
@@ -258,7 +259,7 @@ func PickKeyWords(tts []TouTiao) {
 	*/
 	retv := map[string]float64{}
 	//	retv, retv1 := map[string]float64{}
-	if retv1, b := PullwordGet(s1, 0, 1, fLEVEL); b {
+	if retv1, b := utils.PullwordGet(s1, 0, 1, fLEVEL); b {
 		// merge to retv
 		for k1, v1 := range retv1 {
 			//	fmt.Println(k1, ":", v1)
@@ -266,7 +267,7 @@ func PickKeyWords(tts []TouTiao) {
 		}
 	}
 
-	if retv1, b := PullwordGet(s2, 0, 1, fLEVEL); b {
+	if retv1, b := utils.PullwordGet(s2, 0, 1, fLEVEL); b {
 		// merge to retv
 		for k1, v1 := range retv1 {
 			//	fmt.Println(k1, ":", v1)
@@ -278,7 +279,7 @@ func PickKeyWords(tts []TouTiao) {
 		}
 	}
 
-	if retv1, b := PullwordGet(s3, 0, 1, fLEVEL); b {
+	if retv1, b := utils.PullwordGet(s3, 0, 1, fLEVEL); b {
 		// mergo to retv
 		for k1, v1 := range retv1 {
 			//	fmt.Println(k1, ":", v1)

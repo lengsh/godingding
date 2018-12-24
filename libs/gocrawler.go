@@ -3,23 +3,14 @@ package libs
 import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
+	"github.com/lengsh/godingding/utils"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/chrome"
-	//	"io/ioutil"
 	//	"os"
 	"strconv"
 	"strings"
 	"time"
 )
-
-func recover_defer() {
-	if r := recover(); r != nil {
-		dingtalker := NewDingtalker()
-		s := fmt.Sprintf("[panic error] %s", r)
-		dingtalker.SendChatTextMessage(s)
-		logs.Error(r)
-	}
-}
 
 func CrawlStocksJob() {
 	i := 0
@@ -208,7 +199,7 @@ func (r *GoCrawler) ReleaseCrawler() {
 }
 
 func (r *GoCrawler) crawlIqiyiH5() {
-	defer recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "http://m.iqiyi.com/vip/timeLine.html"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
@@ -220,7 +211,7 @@ func (r *GoCrawler) crawlIqiyiH5() {
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := NewDingtalker()
+		dingtalker := utils.NewDingtalker()
 		dingtalker.SendRobotTextMessage(es)
 		return
 	}
@@ -282,7 +273,7 @@ func (r *GoCrawler) crawlIqiyiH5() {
 }
 
 func (r *GoCrawler) crawlTxH5() {
-	defer recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "http://film.qq.com/weixin/upcoming.html"
 
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -294,7 +285,7 @@ func (r *GoCrawler) crawlTxH5() {
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := NewDingtalker()
+		dingtalker := utils.NewDingtalker()
 		dingtalker.SendRobotTextMessage(es)
 		return
 	}
@@ -349,7 +340,7 @@ func (r *GoCrawler) crawlTxH5() {
 
 /////////////////////
 func (r *GoCrawler) crawlYoukuH5() {
-	defer recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "https://h5.vip.youku.com"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
@@ -360,7 +351,7 @@ func (r *GoCrawler) crawlYoukuH5() {
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := NewDingtalker()
+		dingtalker := utils.NewDingtalker()
 		dingtalker.SendRobotTextMessage(es)
 		return
 	}
@@ -467,7 +458,7 @@ func (r *GoCrawler) crawlYoukuH5() {
 
 ///////////////////////////////
 func (r *GoCrawler) crawlDoubanH5(mv string) float32 {
-	defer recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	mv = strings.TrimSpace(mv)
 	url := fmt.Sprintf("https://www.douban.com/search?cat=1002&q=%s", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -478,7 +469,7 @@ func (r *GoCrawler) crawlDoubanH5(mv string) float32 {
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := NewDingtalker()
+		dingtalker := utils.NewDingtalker()
 		dingtalker.SendRobotTextMessage(es)
 		return 0
 	}
@@ -545,9 +536,7 @@ func (r *GoCrawler) crawlDoubanH5(mv string) float32 {
 
 //////////
 func (r *GoCrawler) crawlStockFrom163H5(sID string) string {
-
-	defer recover_defer()
-
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("http://quotes.money.163.com/usstock/%s.html", mv)
 
@@ -642,8 +631,7 @@ func (r *GoCrawler) crawlStockFrom163H5(sID string) string {
 }
 
 func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
-	defer recover_defer()
-
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://gupiao.baidu.com/stock/us%s.html", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -731,8 +719,7 @@ func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
 }
 
 func (r *GoCrawler) crawlStockFromSinaPC(sID string) string {
-	defer recover_defer()
-
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://stock.finance.sina.com.cn/usstock/quotes/%s.html", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -838,8 +825,7 @@ func (r *GoCrawler) crawlStockFromSinaPC(sID string) string {
 
 //////////
 func (r *GoCrawler) crawlStockFromBaiduH5(sID string) string {
-	defer recover_defer()
-
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.baidu.com/s?wd=%s&rsv_spt=1", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -912,8 +898,7 @@ func (r *GoCrawler) crawlStockFromBaiduH5(sID string) string {
 
 ////////
 func (r *GoCrawler) crawlStockFromFutuPC(sID string) string {
-	defer recover_defer()
-
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	mv := strings.ToUpper(strings.TrimSpace(sID))
 	url := fmt.Sprintf("https://www.futunn.com/quote/stock?m=us&code=%s", mv)
 	r.webDriver.AddCookie(&selenium.Cookie{
@@ -924,8 +909,6 @@ func (r *GoCrawler) crawlStockFromFutuPC(sID string) string {
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
 		es := "[!!!] " + url + " May be shutdown, please make true now!"
-		// dingtalker := NewDingtalker()
-		// dingtalker.SendRobotTextMessage(es)
 		logs.Error(es)
 		return "0 error"
 	}
@@ -1050,7 +1033,7 @@ RETURN:
 
 //////////////
 func (r *GoCrawler) crawlCarLimitFromSogouH5() string {
-	recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "https://m.sogou.com/web/searchList.jsp?keyword=限行尾号&wm=3206"
 	err := r.webDriver.Get(url)
 	if err != nil {
@@ -1081,8 +1064,7 @@ func (r *GoCrawler) crawlCarLimitFromSogouH5() string {
 
 ///////////////
 func (r *GoCrawler) crawlCarLimitFromBaiduH5() string {
-	recover_defer()
-
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "https://www.baidu.com/from=844b/s?word=%E5%8C%97%E4%BA%AC%E9%99%90%E5%8F%B7&sa=tb&ms=1"
 	err := r.webDriver.Get(url)
 	if err != nil {
@@ -1109,7 +1091,7 @@ func (r *GoCrawler) crawlCarLimitFromBaiduH5() string {
 }
 
 func (r *GoCrawler) crawlChemcp() (string, bool) {
-	recover_defer()
+	defer utils.RecoverDefer(utils.GetCaller(2))
 	url := "http://youjia.chemcp.com/beijing/"
 	r.webDriver.AddCookie(&selenium.Cookie{
 		Name:  "a",

@@ -1,5 +1,5 @@
 /* copy from github.com/shen100/golang123 , thanks  */
-package libs
+package utils
 
 import (
 	"encoding/json"

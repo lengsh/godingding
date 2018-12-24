@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego/logs"
 	"github.com/jasonlvhit/gocron"
 	"github.com/lengsh/godingding/libs"
+	"github.com/lengsh/godingding/utils"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -48,19 +49,19 @@ func runInit() {
 		usage()
 	}
 
-	libs.ConfigInit(*confFile)
-	libs.DBinit(libs.DBConfig.URL, libs.DBConfig.MaxIdleConns, libs.DBConfig.MaxOpenConns)
+	utils.ConfigInit(*confFile)
+	libs.DBinit(utils.DBConfig.URL, utils.DBConfig.MaxIdleConns, utils.DBConfig.MaxOpenConns)
 
 	sLogDaily := "false"
-	if libs.ServerConfig.LogDaily {
+	if utils.ServerConfig.LogDaily {
 		sLogDaily = "true"
 	}
-	sl := fmt.Sprintf("{\"filename\":\"%s\",\"maxlines\":%d,\"maxsize\":%d,\"daily\":%s,\"maxdays\":%d}", libs.ServerConfig.LogFile, libs.ServerConfig.LogMaxLines, libs.ServerConfig.LogMaxSize, sLogDaily, libs.ServerConfig.LogMaxDays)
+	sl := fmt.Sprintf("{\"filename\":\"%s\",\"maxlines\":%d,\"maxsize\":%d,\"daily\":%s,\"maxdays\":%d}", utils.ServerConfig.LogFile, utils.ServerConfig.LogMaxLines, utils.ServerConfig.LogMaxSize, sLogDaily, utils.ServerConfig.LogMaxDays)
 	// logs.SetLogger(logs.AdapterFile, `{"filename":"./log/godingding.log","maxlines":10000,"maxsize":102400,"daily":true,"maxdays":2    }`)
 	logs.SetLogger(logs.AdapterFile, sl)
-	logs.EnableFuncCallDepth(libs.ServerConfig.LogEnableDepth) //   true)
-	logs.SetLogFuncCallDepth(libs.ServerConfig.LogDepth)       // 3 )
-	switch libs.ServerConfig.LogLevel {
+	logs.EnableFuncCallDepth(utils.ServerConfig.LogEnableDepth) //   true)
+	logs.SetLogFuncCallDepth(utils.ServerConfig.LogDepth)       // 3 )
+	switch utils.ServerConfig.LogLevel {
 	case "DEBUG":
 		logs.SetLevel(logs.LevelDebug)
 	case "ERROR":
@@ -105,7 +106,7 @@ func main() {
 	scheduler.Every(1).Hour().Do(crawResouJob)
 	scheduler.Start()
 
-	port := fmt.Sprintf(":%d", libs.ServerConfig.Port)
+	port := fmt.Sprintf(":%d", utils.ServerConfig.Port)
 	fmt.Println("http server listen to port:", port)
 
 	s := &http.Server{
@@ -264,16 +265,16 @@ func send(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		if m, ok := r.Form["message"]; ok {
 			if n, ok2 := r.Form[".scrumb"]; ok2 {
-				scrum_new := libs.CreateScrumb("send")
+				scrum_new := utils.CreateScrumb("send")
 				if scrum_new == n[0] {
-					dingtalker := libs.NewDingtalker()
+					dingtalker := utils.NewDingtalker()
 					sm := m[0] // template.HTMLEscapeString(m[0])
 					dingtalker.SendChatTextMessage(sm)
 				}
 			}
 		}
 	}
-	scr := libs.CreateScrumb("send")
+	scr := utils.CreateScrumb("send")
 	var msg Msg = Msg{"", scr}
 	t, _ := template.ParseFiles("view/send.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, msg)
@@ -364,7 +365,7 @@ func help(w http.ResponseWriter, r *http.Request) {
 				s := libs.CrawlCarLimitJob()
 				ss := fmt.Sprintf("@%s\n%s", senderNick, s)
 				fmt.Println(ss)
-				dingtalker := libs.NewDingtalker()
+				dingtalker := utils.NewDingtalker()
 				dingtalker.SendRobotTextMessage(ss)
 			case "爬股票":
 				fallthrough
@@ -383,7 +384,7 @@ func help(w http.ResponseWriter, r *http.Request) {
 					s = "'xianxing' or 'car limit' -- 汽车限行信息\n'update stock' -- 股票系统数据更新\n'update movie'  -- 影视信息数据更新\n'BABA'...etc  -- 特定股票单独更新与咨询指令"
 				}
 				ss := fmt.Sprintf("@%s\n%s", senderNick, s)
-				dingtalker := libs.NewDingtalker()
+				dingtalker := utils.NewDingtalker()
 				dingtalker.SendRobotTextMessage(ss)
 			}
 		}()
@@ -398,7 +399,7 @@ func jsonApi(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		r.ParseForm()
 		if n, ok2 := r.Form[".scrumb"]; ok2 {
-			scrum_new := libs.CreateScrumb("jsonapi")
+			scrum_new := utils.CreateScrumb("jsonapi")
 			if scrum_new == n[0] {
 				rets := ""
 				if f, ok2 := r.Form["func"]; ok2 {
@@ -467,7 +468,7 @@ func syscallDo(msg string) string {
 func carLimit() {
 	// 获得当前离明天早晨7点的时间距离, 即 每天早晨7点自动发送一条股市结果
 
-	dingtalker := libs.NewDingtalker()
+	dingtalker := utils.NewDingtalker()
 	s := libs.CrawlCarLimitJob()
 	dingtalker.SendChatTextMessage(s)
 }
@@ -484,7 +485,7 @@ func stockPing() {
 		i := rand.Intn(100)
 		if i%2 == 0 {
 			o, _ := libs.LastStock("baba")
-			dingtalker := libs.NewDingtalker()
+			dingtalker := utils.NewDingtalker()
 			dingtalker.SendChatTextMessage(o.String())
 		}
 	}()
@@ -493,7 +494,7 @@ func stockPing() {
 func crawMovieJob() {
 	go func() {
 		libs.CrawlMovieJob()
-		dingtalker := libs.NewDingtalker()
+		dingtalker := utils.NewDingtalker()
 		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "http://47.105.107.171/sun.png", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报!")
 
 		tn := time.Now().UTC().Add(8 * time.Hour)

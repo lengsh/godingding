@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/logs"
 	"github.com/astaxie/beego/orm"
+	"github.com/lengsh/godingding/utils"
 	"math"
 	"strings"
 	"time"
-	//	"github.com/lengsh/godingding/log4go"
 	//_ "github.com/mattn/go-sqlite3"
 	//     _ "github.com/go-sql-driver/mysql" // 导入数据库驱动
 )
@@ -238,9 +238,9 @@ func (r Stock) String() string {
 
 }
 func (r Stock) Scrumb() string {
-	return CreateScrumb("jsonapi")
+	return utils.CreateScrumb("jsonapi")
 	//	return s
 }
 func (r StockSum) Scrumb() string {
-	return CreateScrumb("jsonapi")
+	return utils.CreateScrumb("jsonapi")
 }
