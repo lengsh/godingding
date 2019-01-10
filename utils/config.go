@@ -75,6 +75,7 @@ type serverConfig struct {
 	DcorpId        string
 	DacToken       string
 	DchatId        string
+	ResouLevel     float64
 }
 
 // ServerConfig 服务器相关配置

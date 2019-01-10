@@ -11,6 +11,7 @@ func TestGoCrawler(t *testing.T) {
 	//libs.Test_Crawl()
 	//libs.TestUpdate()
 	//libs.CrawlMovieJob()
-	fmt.Println(libs.CrawlStockJob("MSFT"))
-	//libs.UpdateDouban()
+	//	fmt.Println(libs.CrawlStockJob("MSFT"))
+
+	fmt.Println(libs.CrawlStockTestBaidu("BIDU")) //APPL"))
 }

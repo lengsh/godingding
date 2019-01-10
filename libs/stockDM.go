@@ -238,9 +238,9 @@ func (r Stock) String() string {
 
 }
 func (r Stock) Scrumb() string {
-	return utils.CreateScrumb("jsonapi")
+	return utils.CreateScrumb()
 	//	return s
 }
 func (r StockSum) Scrumb() string {
-	return utils.CreateScrumb("jsonapi")
+	return utils.CreateScrumb()
 }

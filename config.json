@@ -20,7 +20,8 @@
 		"LogEnableDepth"      : true,
 		"LogDepth"            : 3,
 		"LogLevel"            : "DEBUG"
-		"TokenSecret"         : "Jxa26iOirBiYX8iLCJuYm5iy", /*TokenSecret，请修改*/
+		"ResouLevel"          :1.60,
+			"TokenSecret"         : "Jxa26iOirBiYX8iLCJuYm5iy", /*TokenSecret，请修改*/
 		"TokenMaxAge"         : 86400, /*token多久过期，单位秒*/
 		"PassSalt"            : "xrjoN1qR",           /*用户密码加盐，请修改*/
 		"DcorpSecret"         : "2uKEYhxff6uGj924NEdrboCivL_Gry",

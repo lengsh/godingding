@@ -265,8 +265,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		if m, ok := r.Form["message"]; ok {
 			if n, ok2 := r.Form[".scrumb"]; ok2 {
-				scrum_new := utils.CreateScrumb("send")
-				if scrum_new == n[0] {
+				if utils.CheckScrumb(n[0]) {
 					dingtalker := utils.NewDingtalker()
 					sm := m[0] // template.HTMLEscapeString(m[0])
 					dingtalker.SendChatTextMessage(sm)
@@ -274,7 +273,7 @@ func send(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	scr := utils.CreateScrumb("send")
+	scr := utils.CreateScrumb()
 	var msg Msg = Msg{"", scr}
 	t, _ := template.ParseFiles("view/send.gtpl", "view/header.gtpl", "view/footer.gtpl")
 	err := t.Execute(w, msg)
@@ -367,21 +366,33 @@ func help(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(ss)
 				dingtalker := utils.NewDingtalker()
 				dingtalker.SendRobotTextMessage(ss)
+			case "RESOU":
+				txt := "最新热搜词"
+				key := time.Now().Format("2006-01-02") + ":simple key"
+				if value, ret := libs.GetKVStore("RESOU", key); ret {
+					txt = txt + ":" + value + "!"
+				}
+				dingtalker := utils.NewDingtalker()
+				dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=resou", "http://47.105.107.171/sun.png", "百度、头条、微博实时热搜榜Top30", txt)
 			case "爬股票":
 				fallthrough
 			case "UPDATE STOCK":
 				libs.CrawlStocksJob()
+				dingtalker := utils.NewDingtalker()
+				dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=stock", "http://47.105.107.171/sun.png", "Top10热门美股", "最新的美股播报TOP10走势详情!")
 			case "爬电影":
 				fallthrough
 			case "UPDATE MOVIE":
 				libs.CrawlMovieJob()
+				dingtalker := utils.NewDingtalker()
+				dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "http://47.105.107.171/sun.png", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报!")
 			default:
 				stocks := "BABA,FB,MSFT,AMZN,AAPL,TSLA,BIDU,NVDA,GOOGL,WB"
 				s := ""
 				if strings.Contains(stocks, keyword) {
 					s = libs.CrawlStockJob(keyword)
 				} else {
-					s = "'xianxing' or 'car limit' -- 汽车限行信息\n'update stock' -- 股票系统数据更新\n'update movie'  -- 影视信息数据更新\n'BABA'...etc  -- 特定股票单独更新与咨询指令"
+					s = "'xianxing' or 'car limit' -- 汽车限行信息\n'update stock' -- 股票系统数据更新\n'update movie'  -- 影视信息数据更新\n'BABA'...etc  -- 特定股票单独更新与咨询指令\n 'resou' -- 热搜榜最新列表"
 				}
 				ss := fmt.Sprintf("@%s\n%s", senderNick, s)
 				dingtalker := utils.NewDingtalker()
@@ -399,8 +410,7 @@ func jsonApi(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		r.ParseForm()
 		if n, ok2 := r.Form[".scrumb"]; ok2 {
-			scrum_new := utils.CreateScrumb("jsonapi")
-			if scrum_new == n[0] {
+			if utils.CheckScrumb(n[0]) {
 				rets := ""
 				if f, ok2 := r.Form["func"]; ok2 {
 					p := "BABA"
@@ -497,6 +507,13 @@ func crawMovieJob() {
 		dingtalker := utils.NewDingtalker()
 		dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=report", "http://47.105.107.171/sun.png", "3大视频网站热剧", "最新的优酷、腾讯、爱奇艺的热点电影近期上映及热度集中播报!")
 
+		txt := "最新热搜词"
+		key := time.Now().Format("2006-01-02") + ":simple key"
+		if value, ret := libs.GetKVStore("RESOU", key); ret {
+			txt = txt + ":" + value + "!"
+			dingtalker.SendChatLinkMessage("http://47.105.107.171/query?do=resou", "http://47.105.107.171/sun.png", "百度、头条、微博实时热搜榜Top30", txt)
+
+		}
 		tn := time.Now().UTC().Add(8 * time.Hour)
 		if tn.Weekday() == time.Monday || tn.Weekday() == time.Sunday {
 			return
@@ -509,7 +526,7 @@ func crawResouJob() {
 	go func() {
 		key := time.Now().Format("2006-01-02")
 		tt := libs.GrabToutiaoProcess()
-		libs.PickKeyWords(tt)
+		libs.PickKeyWords(tt, utils.ServerConfig.ResouLevel)
 		data, err := json.Marshal(tt)
 		if err == nil {
 			libs.SetKVStore("RESOU", key, string(data))

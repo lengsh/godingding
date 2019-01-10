@@ -236,9 +236,9 @@ func FetchKeyWords() string {
 	}
 }
 
-func PickKeyWords(tts []TouTiao) {
+func PickKeyWords(tts []TouTiao, PickLevel float64) {
 	defer utils.RecoverDefer(utils.GetCaller(2))
-	fLEVEL := 0.88
+	fLEVEL := 0.6
 	s1, s2, s3 := "", "", ""
 	for _, v := range tts {
 		if v.Company == "BAIDU" {
@@ -296,7 +296,7 @@ func PickKeyWords(tts []TouTiao) {
 
 	for k1, v1 := range retv {
 		//	if len(k1) > 6 || v1 >= 2 {
-		if len(k1) > 6 || v1 >= 3 {
+		if len(k1) > 6 && v1 >= PickLevel || v1 >= 2 {
 			x := rand.Intn(6)
 			spanclass := ""
 			switch x {
@@ -323,6 +323,19 @@ func PickKeyWords(tts []TouTiao) {
 	// fmt.Println(words)
 	// save to KVStore
 	key := time.Now().Format("2006-01-02") + ":key"
+	SetKVStore("RESOU", key, words)
+
+	words = ""
+	for k1, v1 := range retv {
+		if len(k1) > 6 && v1 >= PickLevel || v1 > 2 {
+			if len(words) == 0 {
+				words = k1
+			} else {
+				words = words + "、" + k1
+			}
+		}
+	}
+	key = time.Now().Format("2006-01-02") + ":simple key"
 	SetKVStore("RESOU", key, words)
 
 }

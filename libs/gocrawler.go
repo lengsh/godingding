@@ -67,6 +67,14 @@ func crawlStocks(idx int) {
 	}
 }
 
+func CrawlStockTestBaidu(sk string) string {
+	r := NewCrawler("PC") //  "IOS")
+	defer r.ReleaseCrawler()
+
+	s := r.crawlStockFromBaiduPC(sk)
+	return s
+}
+
 func CrawlStockJob(sk string) string {
 	r := NewCrawler("PC") //  "IOS")
 	defer r.ReleaseCrawler()
@@ -658,14 +666,21 @@ func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
 		return "2 error"
 	}
 	vs := strings.Split(scur, "\n")
-
+	/*
+		for kk, vv := range vs {
+			fmt.Println(kk, ":", vv)
+		}
+	*/
 	if len(vs) > 14 {
 		s := vs[1]
 		sv := strings.Split(s, " ")
 		if len(sv) < 3 {
 			return ""
 		}
-		shoupan := sv[0]
+		shoupan := "0"
+		if len(sv) > 0 {
+			shoupan = sv[0]
+		}
 		kaipan := vs[3]
 		zuidi := vs[9]
 		zuigao := vs[7]
@@ -687,7 +702,7 @@ func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
 		mo.HighPrice = float32(f)
 
 		idx := strings.Index(chengjiao, "万")
-		if len(chengjiao) > idx {
+		if len(chengjiao) > idx && idx > 0 {
 			// f, _ = strconv.ParseFloat(s[0:idx], 32)
 			f, _ = strconv.ParseFloat(chengjiao[0:idx], 32)
 			mo.TradeStock = float32(f) * 10000
@@ -695,18 +710,19 @@ func (r *GoCrawler) crawlStockFromBaiduPC(sID string) string {
 
 		bb := strings.Contains(shizhi, "万亿")
 		if bb {
-			if len(shizhi)-8 > 9 { //  len("(万亿)") == 8
-				f, _ = strconv.ParseFloat(shizhi[9:len(shizhi)-5], 32)
+			if len(shizhi)-6 > 0 { //  len("万亿") == 6
+				f, _ = strconv.ParseFloat(shizhi[0:len(shizhi)-6], 32)
 				mo.MarketCap = float32(f) * 10000
 			}
 		} else {
-			if len(shizhi)-5 > 9 { //  len("(亿)") == 5
-				f, _ = strconv.ParseFloat(shizhi[9:len(shizhi)-5], 32)
+			if strings.Contains(shizhi, "亿") && len(shizhi)-3 > 0 { //  len("亿") == 3
+				f, _ = strconv.ParseFloat(shizhi[0:len(shizhi)-3], 32)
 				mo.MarketCap = float32(f)
 			}
 		}
 
 		mo.CreateDate = time.Now().UTC() //.Add(8 * time.Hour)
+
 		if mo.MarketCap > 0 {
 			mo.NewStock()
 		} else {
