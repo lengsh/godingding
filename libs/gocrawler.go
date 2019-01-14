@@ -218,9 +218,11 @@ func (r *GoCrawler) crawlIqiyiH5() {
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
-		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := utils.NewDingtalker()
-		dingtalker.SendRobotTextMessage(es)
+		/*
+		   es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		   		dingtalker := utils.NewDingtalker()
+		   		dingtalker.SendRobotTextMessage(es)
+		*/
 		return
 	}
 	//      fmt.Println(webDriver.Title())
@@ -292,9 +294,11 @@ func (r *GoCrawler) crawlTxH5() {
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
-		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := utils.NewDingtalker()
-		dingtalker.SendRobotTextMessage(es)
+		/*
+		   es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		   		dingtalker := utils.NewDingtalker()
+		   		dingtalker.SendRobotTextMessage(es)
+		*/
 		return
 	}
 	//      fmt.Println(webDriver.Title())
@@ -358,9 +362,11 @@ func (r *GoCrawler) crawlYoukuH5() {
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
-		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := utils.NewDingtalker()
-		dingtalker.SendRobotTextMessage(es)
+		/*
+		   es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		   		dingtalker := utils.NewDingtalker()
+		   		dingtalker.SendRobotTextMessage(es)
+		*/
 		return
 	}
 	//  hot vedio
@@ -476,9 +482,11 @@ func (r *GoCrawler) crawlDoubanH5(mv string) float32 {
 	err := r.webDriver.Get(url)
 	if err != nil {
 		logs.Error(fmt.Sprintf("Failed to load page: %s\n", err))
-		es := "[WARNING] " + url + " May be shutdown, please make true now!"
-		dingtalker := utils.NewDingtalker()
-		dingtalker.SendRobotTextMessage(es)
+		/*
+		   es := "[WARNING] " + url + " May be shutdown, please make true now!"
+		   		dingtalker := utils.NewDingtalker()
+		   		dingtalker.SendRobotTextMessage(es)
+		*/
 		return 0
 	}
 	//      fmt.Println(webDriver.Title())

@@ -31,41 +31,39 @@ func RecoverDefer(position string) {
 	}
 }
 
- var TIMELEN int64 = 60     // 60s 有效时长
+var TIMELEN int64 = 180 // 60s 有效时长
 
-func createScrumb( delay int64 ) string {
- //  usec := time.Now().UnixNano()
- //  secs  := usec/(1000000*1000)
-   secs := time.Now().Unix()
-	pnum := secs / (TIMELEN/2) - delay
+func createScrumb(delay int64) string {
+	//  usec := time.Now().UnixNano()
+	//  secs  := usec/(1000000*1000)
+	secs := time.Now().Unix()
+	pnum := secs/(TIMELEN/2) - delay
 
-	str := fmt.Sprintf("%s%d Scrumb secret keY", ServerConfig.PassSalt  , pnum)
+	str := fmt.Sprintf("%s%d Scrumb secret keY", ServerConfig.PassSalt, pnum)
 	h := md5.New() // 计算MD5散列，引入crypto/md5 并使用 md5.New()方法。
 	h.Write([]byte(str))
 	bs := h.Sum(nil)
 	//      log.Println(pnum)
 	//ss := fmt.Sprintf("%x", bs)
-    //   fmt.Println(pnum, "; create, salt=", ss)
-       return fmt.Sprintf("%x", bs)
+	//   fmt.Println(pnum, "; create, salt=", ss)
+	return fmt.Sprintf("%x", bs)
 }
 
-
 func CreateScrumb() string {
-       return createScrumb(0) 
+	return createScrumb(0)
 }
 
 func CheckScrumb(old string) bool {
-s1 :=  createScrumb(0) 
-if s1  == old {
-		    return true
-	    }
-    s1 = createScrumb(1)
-if s1  == old {
-		    return true
-	    }
-    return false
+	s1 := createScrumb(0)
+	if s1 == old {
+		return true
+	}
+	s1 = createScrumb(1)
+	if s1 == old {
+		return true
+	}
+	return false
 }
-
 
 func AuthenticationIP(req *http.Request) (error, bool) {
 	//	sip = "0:0:1;127.0.0.1;47.105.107.171"
